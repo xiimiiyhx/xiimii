@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海洋保护案例展示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ice-light: #9BE3FF;
+            --ice-mid: #5AC8FA;
+            --ice-deep: #0077CC;
+            --ice-pale: #E0F4FF;
+            --ice-glow: rgba(155, 227, 255, 0.4);
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(180deg, #E0F4FF 0%, #0077CC 30%, #5AC8FA 60%, #0077CC 100%);
+            min-height: 100vh;
+            color: #1a3a5c;
+            overflow-x: hidden;
+            cursor: none;
+        }
+        body, body * {
+            cursor: none !important;
+        }
+        .font-serif-sc {
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        /* ==================== 导航栏样式 ==================== */
+        .nav-container {
+            position: relative;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px 0 10px;
+        }
+
+        .nav-item {
+            background: rgba(0, 40, 80, 0.6);
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 25px;
+            padding: 10px 30px;
+            color: #a8d8f0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 195, 247, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item:hover {
+            background: rgba(79, 195, 247, 0.25);
+            border-color: #4FC3F7;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.8), 0 0 20px rgba(79, 195, 247, 0.4);
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.3), inset 0 0 10px rgba(79, 195, 247, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 海洋保护亮起状态 */
+        .nav-item.active {
+            background: rgba(79, 195, 247, 0.4);
+            border-color: #4FC3F7;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 1), 0 0 30px rgba(79, 195, 247, 0.6);
+            box-shadow: 0 0 25px rgba(79, 195, 247, 0.5), inset 0 0 15px rgba(79, 195, 247, 0.2);
+            animation: nav-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes nav-glow {
+            0%, 100% { box-shadow: 0 0 25px rgba(79, 195, 247, 0.5), inset 0 0 15px rgba(79, 195, 247, 0.2); }
+            50% { box-shadow: 0 0 35px rgba(79, 195, 247, 0.7), inset 0 0 20px rgba(79, 195, 247, 0.3); }
+        }
+        
+        /* 统一图表面板样式 - 海浪冰蓝 */
+        .chart-box {
+            background: rgba(155, 227, 255, 0.25);
+            border: 1px solid rgba(90, 200, 250, 0.4);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 24px rgba(90, 200, 250, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+        }
+        
+        .carousel-container {
+            perspective: 1200px;
+            height: 480px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .carousel-card {
+            position: absolute;
+            width: 320px;
+            height: 420px;
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            box-shadow: 0 20px 60px rgba(0, 119, 204, 0.15), 0 8px 24px rgba(90, 200, 250, 0.2);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(155, 227, 255, 0.6);
+        }
+        .carousel-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        .carousel-card:hover img {
+            transform: scale(1.05);
+        }
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 28px;
+            background: linear-gradient(to top, rgba(0, 60, 100, 0.85) 0%, rgba(0, 60, 100, 0.4) 50%, transparent 100%);
+            color: #fff;
+        }
+        .card-label {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+            background: rgba(90, 200, 250, 0.3);
+            border: 1px solid rgba(155, 227, 255, 0.5);
+            color: #E0F4FF;
+        }
+        .card-center {
+            z-index: 30;
+            transform: translateX(0) scale(1.1);
+            opacity: 1;
+        }
+        .card-left-1 {
+            z-index: 20;
+            transform: translateX(-340px) scale(0.9) rotateY(8deg);
+            opacity: 0.75;
+            filter: brightness(0.9);
+        }
+        .card-left-2 {
+            z-index: 10;
+            transform: translateX(-600px) scale(0.8) rotateY(15deg);
+            opacity: 0.45;
+            filter: brightness(0.8);
+        }
+        .card-right-1 {
+            z-index: 20;
+            transform: translateX(340px) scale(0.9) rotateY(-8deg);
+            opacity: 0.75;
+            filter: brightness(0.9);
+        }
+        .card-right-2 {
+            z-index: 10;
+            transform: translateX(600px) scale(0.8) rotateY(-15deg);
+            opacity: 0.45;
+            filter: brightness(0.8);
+        }
+        .card-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(0) scale(0.7);
+        }
+        .nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(155, 227, 255, 0.8);
+            color: #0077CC;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 50;
+            box-shadow: 0 4px 16px rgba(90, 200, 250, 0.2);
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #5AC8FA;
+            transform: scale(1.1);
+            box-shadow: 0 8px 24px rgba(90, 200, 250, 0.35);
+        }
+        .dot-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(90, 200, 250, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(155, 227, 255, 0.5);
+        }
+        .dot-indicator.active {
+            background: #2f658b;
+            width: 28px;
+            border-radius: 8px;
+            box-shadow: 0 0 12px rgba(0, 119, 204, 0.4);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(200, 236, 255, 0.7);
+            backdrop-filter: blur(16px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            background: linear-gradient(180deg, #F0FAFF 0%, #E0F4FF 100%);
+            border-radius: 28px;
+            overflow: hidden;
+            z-index: 101;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 80px rgba(0, 119, 204, 0.15), 0 0 0 1px rgba(155, 227, 255, 0.6);
+            border: 1px solid rgba(155, 227, 255, 0.8);
+        }
+        .modal-content.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .modal-scroll {
+            max-height: 85vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(90, 200, 250, 0.5) transparent;
+        }
+        .modal-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: rgba(90, 200, 250, 0.5);
+            border-radius: 3px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(155, 227, 255, 0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(90, 200, 250, 0.2);
+        }
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: rotate(90deg);
+            box-shadow: 0 6px 20px rgba(90, 200, 250, 0.3);
+        }
+        
+        /* Message Board Styles */
+        .message-board {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(155, 227, 255, 0.5);
+            border-radius: 24px;
+            padding: 32px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(90, 200, 250, 0.1);
+        }
+        .message-input {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(155, 227, 255, 0.6);
+            border-radius: 14px;
+            padding: 14px 18px;
+            color: #1a3a5c;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans SC', sans-serif;
+            box-shadow: inset 0 2px 4px rgba(90, 200, 250, 0.05);
+        }
+        .message-input::placeholder {
+            color: rgba(90, 200, 250, 0.6);
+        }
+        .message-input:focus {
+            border-color: #5AC8FA;
+            box-shadow: 0 0 20px rgba(90, 200, 250, 0.2), inset 0 2px 4px rgba(90, 200, 250, 0.05);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .message-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #5AC8FA 0%, #0077CC 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 12px 32px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 119, 204, 0.3);
+            font-size: 14px;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 119, 204, 0.4);
+        }
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        .message-item {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(155, 227, 255, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 12px rgba(90, 200, 250, 0.08);
+        }
+        .message-item:hover {
+            border-color: rgba(90, 200, 250, 0.7);
+            transform: translateX(4px);
+            box-shadow: 0 8px 24px rgba(90, 200, 250, 0.15);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .message-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5AC8FA 0%, #0077CC 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0, 119, 204, 0.2);
+            flex-shrink: 0;
+        }
+        .message-time {
+            color: rgba(90, 200, 250, 0.7);
+            font-size: 12px;
+        }
+        .message-name {
+            color: #0077CC;
+            font-weight: 600;
+        }
+        .message-content {
+            color: rgba(26, 58, 92, 0.85);
+            line-height: 1.7;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        
+        /* Glow effects */
+        .glow-text {
+            text-shadow: 0 2px 20px rgba(90, 200, 250, 0.3);
+        }
+        
+        /* Section title decoration */
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #5AC8FA, transparent);
+            border-radius: 2px;
+        }
+        
+        /* Fade animation */
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Floating bubbles */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(155, 227, 255, 0.3));
+            pointer-events: none;
+            animation: float-up linear infinite;
+            box-shadow: 0 0 20px rgba(155, 227, 255, 0.3);
+        }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) translateX(0) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-100px) translateX(30px) scale(1); opacity: 0; }
+        }
+        
+        /* Wave decoration */
+        .wave-divider {
+            height: 60px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60'%3E%3Cpath fill='%23E0F4FF' fill-opacity='0.5' d='M0,30 C360,60 720,0 1080,30 C1260,45 1380,20 1440,30 L1440,60 L0,60 Z'/%3E%3C/svg%3E");
+            background-size: cover;
+        }
+
+        /* ========== 自定义小鱼鼠标 ========== */
+        #fish-cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/fish.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ========== 鼠标跟随气泡容器 ========== */
+        #mouse-bubble-box {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        #mouse-bubble-box .mouse-bubble {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(173, 216, 230, 0.35);
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.55);
+            animation: rise 2.5s ease-out forwards;
+        }
+        @keyframes rise {
+            0% { opacity: 0.8; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-120px); }
+        }
+        
+        @media (max-width: 768px) {
+            .carousel-card {
+                width: 260px;
+                height: 360px;
+            }
+            .card-left-1 {
+                transform: translateX(-280px) scale(0.9) rotateY(8deg);
+            }
+            .card-right-1 {
+                transform: translateX(280px) scale(0.9) rotateY(-8deg);
+            }
+            .card-left-2, .card-right-2 {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative">
+    <!-- 导航栏 -->
+    <div class="nav-container">
+        <a href="he01.html" class="nav-item">首页</a>
+        <a href="page2.html" class="nav-item">海洋信息</a>
+        <a href="page3_2.html" class="nav-item">海洋危机</a>
+        <a href="page4.html" class="nav-item active">海洋保护</a>
+    </div>
+
+    <!-- 新增：小鱼自定义鼠标 -->
+    <div id="fish-cursor"></div>
+    <!-- 新增：鼠标移动气泡层 -->
+    <div id="mouse-bubble-box"></div>
+    <!-- Floating Bubbles Background -->
+    <div id="bubbles" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+    <!-- Header -->
+    <header class="pt-16 pb-8 px-6 text-center relative z-10">
+        <div class="max-w-4xl mx-auto">
+            <p class="text-sm tracking-widest text-[#5AC8FA] mb-3 uppercase font-bold glow-text">Ocean Protection</p>
+            <h1 class="text-4xl md:text-5xl font-serif-sc font-bold text-[#0077CC] mb-6 tracking-tight glow-text">全球海洋生态修复案例</h1>
+            <p class="text-[#1a3a5c]/70 text-lg leading-relaxed max-w-2xl mx-auto">
+                围绕珊瑚礁修复、海洋保护区、社区参与与科技创新四个方向，探索人类如何通过科学手段与生态智慧，让受损的海洋生态系统重焕生机。
+            </p>
+        </div>
+    </header>
+
+    <!-- Carousel Section -->
+    <main class="flex-1 flex flex-col items-center justify-center py-8 relative z-10">
+        <div class="w-full max-w-6xl mx-auto px-4 relative">
+            
+            <!-- Carousel -->
+            <div class="carousel-container" id="carousel"></div>
+
+            <!-- Navigation Buttons -->
+            <button class="nav-btn absolute left-4 md:left-8 top-1/2 -translate-y-1/2" onclick="moveCarousel(-1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+            <button class="nav-btn absolute right-4 md:right-8 top-1/2 -translate-y-1/2" onclick="moveCarousel(1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+
+            <!-- Dots -->
+            <div class="flex justify-center gap-2 mt-8" id="dotsContainer"></div>
+        </div>
+
+        <!-- Active Card Info -->
+        <div class="text-center mt-10 px-4 max-w-xl mx-auto fade-in" id="activeInfo">
+            <h2 class="text-2xl font-serif-sc font-bold text-[#ffffff] mb-2" id="activeTitle"></h2>
+            <p class="text-[#89cef5]/60 text-sm leading-relaxed" id="activeDesc"></p>
+        </div>
+    </main>
+
+    <!-- Wave Divider -->
+    <div class="wave-divider relative z-10"></div>
+
+    <!-- Message Board Section -->
+    <section class="py-20 px-4 relative z-10 bg-gradient-to-b from-[#E0F4FF]/50 to-[#C8ECFF]/30">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <p class="text-sm tracking-widest text-[#5AC8FA] mb-3 uppercase font-bold">Community</p>
+                <h2 class="text-3xl md:text-4xl font-serif-sc font-bold text-[#0077CC] mb-4 section-title">海洋守护者留言板</h2>
+                <p class="text-[#1a3a5c]/60 text-base max-w-lg mx-auto">
+                    分享你对海洋保护的想法、见证或承诺。每一条留言都是一颗守护蔚蓝的种子。
+                </p>
+            </div>
+
+            <div class="message-board">
+                <!-- Input Form -->
+                <div class="chart-box mb-8">
+                    <h3 class="text-lg font-bold text-[#0077CC] mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#5AC8FA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        写下你的留言
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="msgName" class="message-input" placeholder="你的名字" maxlength="20">
+                            <input type="text" id="msgLocation" class="message-input" placeholder="所在城市（可选）" maxlength="30">
+                        </div>
+                        <textarea id="msgContent" class="message-input message-textarea" placeholder="分享你对海洋保护的想法、见闻或承诺..." maxlength="500"></textarea>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-[#86c9f1]/60" id="charCount">0/500</span>
+                            <button onclick="submitMessage()" class="submit-btn flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                                发布留言
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages List -->
+                <div class="chart-box">
+                    <h3 class="text-lg font-bold text-[#0077CC] mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#5AC8FA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                        </svg>
+                        守护者心声
+                        <span class="text-sm font-normal text-[#5AC8FA]/60 ml-2" id="msgCount">(3)</span>
+                    </h3>
+                    <div id="messagesList"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 text-center relative z-10 bg-[#C8ECFF]/30">
+        <p class="text-[#5AC8FA]/60 text-sm">蔚蓝守护 · 让海洋重焕生机</p>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+    <div class="modal-content" id="modalContent">
+        <div class="modal-scroll">
+            <button class="close-btn" onclick="closeModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+            <div class="relative h-72 overflow-hidden">
+                <img id="modalImage" src="" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#E0F4FF] via-[#E0F4FF]/40 to-transparent"></div>
+                <div class="absolute bottom-6 left-8 right-8">
+                    <span id="modalTag" class="inline-block px-4 py-1.5 rounded-full text-xs font-semibold text-[#0077CC] bg-[#9BE3FF]/60 backdrop-blur-md border border-[#5AC8FA]/40 mb-3"></span>
+                    <h2 id="modalTitle" class="text-3xl font-serif-sc font-bold text-[#0077CC]"></h2>
+                </div>
+            </div>
+            <div class="p-8">
+                <div id="modalBody" class="text-[#1a3a5c]/80 leading-relaxed text-base space-y-4"></div>
+                
+                <div class="mt-8 pt-6 border-t border-[#5AC8FA]/20">
+                    <h3 class="text-sm font-bold text-[#5AC8FA] uppercase tracking-wider mb-4">关键数据</h3>
+                    <div class="grid grid-cols-3 gap-4" id="modalStats"></div>
+                </div>
+
+                <div class="mt-8 p-6 chart-box">
+                    <h3 class="text-sm font-bold text-[#5AC8FA] uppercase tracking-wider mb-3">保护亮点</h3>
+                    <ul id="modalHighlights" class="space-y-2 text-[#1a3a5c]/70 text-sm"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Case Data
+        const cases = [
+            {
+                id: 'wuzhizhou',
+                title: '珊瑚礁修复',
+                subtitle: '三亚蜈支洲岛',
+                desc: '以人工苗圃与生态礁体为核心，结合"旅游+公益"模式，实现珊瑚覆盖率从15%到37%的跨越。',
+                image: 'https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=800&q=80',
+                tag: '珊瑚礁修复',
+                tagColor: 'bg-[#5AC8FA]/40',
+                content: `
+                    <p>蜈支洲岛位于海南省三亚市北部，曾因渔业捕捞、陆源污染及水产养殖导致珊瑚礁生态系统严重退化。2010年起，项目推行"政策引领-源头治理-修复保护-生态旅游"一体化发展模式。</p>
+                    <p>通过与中科院南海所、海南大学合作，因地制宜建设多种珊瑚苗圃，成功研发珊瑚种植人工礁及黎族船型屋形珊瑚种植礁。项目还探索"旅游+公益"新模式，推出"海底花园"计划，让游客参与珊瑚认养。</p>
+                    <p>截至2024年，累计修复珊瑚5.3万株，修复面积5.6万平方米，周边海域珊瑚覆盖率从15%提升至37.08%，记录到265种礁栖鱼类。</p>
+                `,
+                stats: [
+                    { value: '5.3万', label: '修复珊瑚株', color: 'text-[#0077CC]' },
+                    { value: '5.6万', label: '修复面积 m²', color: 'text-[#0077CC]' },
+                    { value: '37.08%', label: '珊瑚覆盖率', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['首创黎族船型屋形珊瑚种植礁', '265种礁栖鱼类回归', '旅游+公益创新模式']
+            },
+            {
+                id: 'weizhou',
+                title: '珊瑚礁保护',
+                subtitle: '北海涠洲岛',
+                desc: '中国最高纬度珊瑚礁群，通过立法保障、科技赋能与全民参与，守护北缘珊瑚生态。',
+                image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&q=80',
+                tag: '立法保护',
+                tagColor: 'bg-[#0077CC]/40',
+                content: `
+                    <p>涠洲岛拥有中国最高纬度珊瑚礁群，是世界珊瑚礁的重要组成部分。由于气候变化与人为干扰，珊瑚礁自然恢复已十分困难。</p>
+                    <p>项目坚持立法保障、科技赋能、持续修复和全民参与多措并举。在海域投放人工格栅礁体，潜水员固定礁体并移植珊瑚，有效提升了珊瑚礁生态系统的质量和稳定性。</p>
+                    <p>通过建立长期监测网络，结合社区教育和渔民转型培训，形成了政府、科研机构与社区协同保护的良好格局。</p>
+                `,
+                stats: [
+                    { value: '最高', label: '纬度分布', color: 'text-[#0077CC]' },
+                    { value: '多举措', label: '立法+科技+修复', color: 'text-[#0077CC]' },
+                    { value: '显著', label: '生态质量提升', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['中国最高纬度珊瑚礁群', '立法保障与科技赋能结合', '社区协同保护模式']
+            },
+            {
+                id: 'florida',
+                title: '珊瑚礁修复',
+                subtitle: '佛罗里达基金会',
+                desc: '全球最大规模珊瑚修复项目之一，已归还超过22万株濒危珊瑚，启动3年6万株移植计划。',
+                image: 'images/11.jpg',
+                tag: '大规模修复',
+                tagColor: 'bg-[#5AC8FA]/40',
+                content: `
+                    <p>佛罗里达群岛拥有世界上生态和经济价值极高的珊瑚礁生态系统。珊瑚修复基金会自2007年成立以来，已归还超过220,000株濒危珊瑚回佛罗里达珊瑚礁。</p>
+                    <p>NOAA及其合作伙伴启动了为期3年的标志性任务，在东部干岩保护区移植60,000多株苗圃培育的珊瑚碎片，恢复7个珊瑚礁区域。项目重点关注快速生长的鹿角珊瑚和麋角珊瑚。</p>
+                    <p>通过珊瑚园艺技术，在离岸苗圃中培育健康珊瑚断枝，待其强壮后移植到退化礁区，形成可持续的修复循环。</p>
+                `,
+                stats: [
+                    { value: '22万+', label: '归还珊瑚数量', color: 'text-[#0077CC]' },
+                    { value: '6万+', label: 'NOAA移植计划', color: 'text-[#0077CC]' },
+                    { value: '7个', label: '修复礁区目标', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['全球最大规模珊瑚修复之一', '220,000株珊瑚成功归还', '7个礁区系统性恢复']
+            },
+            {
+                id: 'gbr',
+                title: '珊瑚IVF',
+                subtitle: '大堡礁创新',
+                desc: '澳大利亚首次珊瑚体外受精试验，培育的珊瑚成功存活并准备自然繁殖，展现极强适应力。',
+                image: 'images/大堡礁创新.jpg',
+                tag: '创新技术',
+                tagColor: 'bg-[#0077CC]/40',
+                content: `
+                    <p>澳大利亚首次"珊瑚IVF"试验于2016年在大堡礁进行，旨在通过收集珊瑚产卵并在受控环境中培育幼虫，增加珊瑚礁成功补充的机会。</p>
+                    <p>令人振奋的是，这些通过IVF技术培育的珊瑚不仅 survived 2020年的严重白化事件，而且已准备好在次年进行自然繁殖和产卵，显示出极强的环境适应性和生命力。</p>
+                    <p>项目结合了珊瑚园艺、人工礁建设和遗传多样性保护等多种手段，为大堡礁这一世界自然遗产的保护提供了科学范例，也为全球珊瑚礁修复开辟了新路径。</p>
+                `,
+                stats: [
+                    { value: '2016', label: '首次试验年份', color: 'text-[#0077CC]' },
+                    { value: '存活', label: '2020白化事件', color: 'text-[#0077CC]' },
+                    { value: '繁殖', label: '准备自然产卵', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['全球首创珊瑚IVF技术', '白化事件后存活并繁殖', '遗传多样性保护']
+            },
+            {
+                id: 'mars',
+                title: '珊瑚礁修复',
+                subtitle: '珊瑚三角区',
+                desc: 'Mars"蜘蛛"结构修复法，覆盖率从2%跃升至70%，鱼类种群增加175%，创造历史最大单次修复。',
+                image: 'https://images.unsplash.com/photo-1560264357-8d9202250f21?w=800&q=80',
+                tag: '社区参与',
+                tagColor: 'bg-[#5AC8FA]/40',
+                content: `
+                    <p>玛氏公司与海洋科学家合作，在珊瑚三角区（Coral Triangle）创建了独特的"蜘蛛"结构——六角形沙涂层钢结构，上面附着珊瑚碎片。这些"礁星"用于填补剩余活珊瑚礁之间的空隙。</p>
+                    <p>结果令人瞩目：珊瑚礁覆盖率从2%跃升至70%，鱼类种群增加了175%。2023年，"The Big Build"项目在2,500平方米区域内成功种植了30,000株珊瑚，是历史上最大的单次修复活动之一。</p>
+                    <p>项目深度融入当地社区，培训渔民成为珊瑚园丁，将传统渔业知识与现代修复技术结合，创造了可持续的生计替代方案。</p>
+                `,
+                stats: [
+                    { value: '2%→70%', label: '覆盖率跃升', color: 'text-[#0077CC]' },
+                    { value: '+175%', label: '鱼类种群增长', color: 'text-[#0077CC]' },
+                    { value: '3万', label: '单次种植珊瑚', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['独创"蜘蛛"礁星结构', '覆盖率从2%跃升至70%', '渔民转型珊瑚园丁']
+            },
+            {
+                id: 'maldives',
+                title: '珊瑚守护',
+                subtitle: '马尔代夫项目',
+                desc: '当地渔民转型珊瑚园丁，修复超500平方米礁栖地，培训50多名社区成员参与保护。',
+                image: 'images/22.jpg',
+                tag: '社区参与',
+                tagColor: 'bg-[#0077CC]/40',
+                content: `
+                    <p>马尔代夫珊瑚守护者项目（Reef Guardians）是一项由当地社区驱动的珊瑚礁修复倡议。面对气候变化导致的珊瑚白化和渔业资源衰退，项目培训当地渔民转型为"珊瑚园丁"。</p>
+                    <p>通过建立近岸珊瑚苗圃，收集风暴脱落的珊瑚碎片进行培育，待其恢复后移植到退化礁区。项目已成功修复超过500平方米礁栖地，培训了50多名社区成员掌握珊瑚修复技术。</p>
+                    <p>项目还建立了生态旅游机制，让游客参与珊瑚种植和监测，既增加了社区收入，又提升了公众海洋保护意识，形成了保护与发展的良性循环。</p>
+                `,
+                stats: [
+                    { value: '500+', label: '修复面积 m²', color: 'text-[#0077CC]' },
+                    { value: '50+', label: '培训社区成员', color: 'text-[#0077CC]' },
+                    { value: '100%', label: '社区驱动', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['渔民转型珊瑚园丁', '社区驱动的保护模式', '生态旅游与修复结合']
+            },
+            {
+                id: 'bahamas',
+                title: '礁区救援',
+                subtitle: '巴哈马网络',
+                desc: '创建"珊瑚礁修复旅游"细分市场，修复15,000平方米区域，重新种植2,450个珊瑚碎片。',
+                image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80',
+                tag: '生态旅游',
+                tagColor: 'bg-[#5AC8FA]/40',
+                content: `
+                    <p>巴哈马珊瑚礁救援网络（Reef Rescue Network）创新性地将珊瑚修复与生态旅游结合，创建了"珊瑚礁修复旅游"这一细分市场。</p>
+                    <p>项目在多个岛屿建立修复站点，培训潜水教练和导游带领游客参与珊瑚种植和监测。目前已修复15,000平方米区域，重新种植2,450个珊瑚碎片。</p>
+                    <p>通过让游客亲手种植珊瑚并接收生长报告，建立了深度的情感连接。这种模式不仅 funding 了修复工作，还培养了一大批海洋保护倡导者。</p>
+                `,
+                stats: [
+                    { value: '1.5万', label: '修复面积 m²', color: 'text-[#0077CC]' },
+                    { value: '2450', label: '重新种植碎片', color: 'text-[#0077CC]' },
+                    { value: '创新', label: '修复旅游模式', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['首创珊瑚礁修复旅游', '游客参与种植与监测', '培养海洋保护倡导者']
+            },
+            {
+                id: 'belize',
+                title: '海洋保护',
+                subtitle: '伯利兹蓝联盟',
+                desc: '保护100万公顷高生物多样性珊瑚礁，保护40多种濒危物种，改善2万多名社区成员生活。',
+                image: 'images/伯利兹.jpg',
+                tag: '海洋保护区',
+                tagColor: 'bg-[#0077CC]/40',
+                content: `
+                    <p>伯利兹蓝联盟（Belize Blue Bond）是一项开创性的海洋保护金融机制，通过债务重组换取海洋保护承诺，建立了覆盖100万公顷的海洋保护区网络。</p>
+                    <p>该保护区保护了40多种濒危物种，包括海龟、鲨鱼和珍稀珊瑚。通过科学分区管理，设置了完全禁捕区、缓冲区和水产养殖区，实现了生态保护和社区发展的平衡。</p>
+                    <p>项目改善了超过2万名沿海社区成员的生活，通过替代生计培训、生态旅游开发和渔业资源恢复，让保护成为社区自觉行动。</p>
+                `,
+                stats: [
+                    { value: '100万', label: '保护公顷', color: 'text-[#0077CC]' },
+                    { value: '40+', label: '濒危物种', color: 'text-[#0077CC]' },
+                    { value: '2万+', label: '社区受益', color: 'text-[#0077CC]' }
+                ],
+                highlights: ['债务换自然保护机制', '100万公顷保护区网络', '生态与经济双赢']
+            }
+        ];
+
+        let currentIndex = 0;
+
+        // Message Board Data
+        let messages = [
+            {
+                id: 1,
+                name: '海洋行者',
+                location: '青岛',
+                content: '去年参加了蜈支洲岛的珊瑚认养活动，亲手种下了一株珊瑚。今年收到照片，它已经长大了！这种参与感让我真正理解了保护海洋的意义。',
+                time: '2026-06-24 14:32'
+            },
+            {
+                id: 2,
+                name: '深蓝守护者',
+                location: '厦门',
+                content: '作为一名潜水爱好者，亲眼见证了涠洲岛珊瑚礁的变化。从一片灰白到五彩斑斓，这背后是无数科研人员和当地渔民的共同努力。希望更多人加入守护行列。',
+                time: '2026-06-23 09:15'
+            },
+            {
+                id: 3,
+                name: '蔚蓝梦想家',
+                location: '上海',
+                content: 'Mars的"蜘蛛"结构太有创意了！将商业智慧与生态保护结合，培训渔民成为珊瑚园丁，这种可持续模式值得全球推广。期待有一天能去珊瑚三角区亲眼看看。',
+                time: '2026-06-22 18:47'
+            }
+        ];
+
+        function getCardClass(index) {
+            const diff = index - currentIndex;
+            const total = cases.length;
+            let normalizedDiff = diff;
+            if (diff > total / 2) normalizedDiff = diff - total;
+            if (diff < -total / 2) normalizedDiff = diff + total;
+
+            if (normalizedDiff === 0) return 'card-center';
+            if (normalizedDiff === -1) return 'card-left-1';
+            if (normalizedDiff === -2) return 'card-left-2';
+            if (normalizedDiff === 1) return 'card-right-1';
+            if (normalizedDiff === 2) return 'card-right-2';
+            return 'card-hidden';
+        }
+
+        function renderCarousel() {
+            const container = document.getElementById('carousel');
+            container.innerHTML = '';
+            
+            cases.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = `carousel-card ${getCardClass(index)}`;
+                card.innerHTML = `
+                    <img src="${item.image}" alt="${item.title}">
+                    <div class="card-overlay">
+                        <span class="card-label">${item.tag}</span>
+                        <h3 class="text-xl font-serif-sc font-bold mt-3 text-white">${item.title}</h3>
+                        <p class="text-sm text-[#9BE3FF] mt-1">${item.subtitle}</p>
+                    </div>
+                `;
+                card.onclick = () => openModal(index);
+                container.appendChild(card);
+            });
+
+            const dotsContainer = document.getElementById('dotsContainer');
+            dotsContainer.innerHTML = '';
+            cases.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = `dot-indicator ${index === currentIndex ? 'active' : ''}`;
+                dot.onclick = () => {
+                    currentIndex = index;
+                    renderCarousel();
+                    updateActiveInfo();
+                };
+                dotsContainer.appendChild(dot);
+            });
+
+            updateActiveInfo();
+        }
+
+        function updateActiveInfo() {
+            const item = cases[currentIndex];
+            const titleEl = document.getElementById('activeTitle');
+            const descEl = document.getElementById('activeDesc');
+            
+            titleEl.style.opacity = '0';
+            descEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                titleEl.textContent = item.subtitle;
+                descEl.textContent = item.desc;
+                titleEl.style.opacity = '1';
+                descEl.style.opacity = '1';
+            }, 200);
+        }
+
+        function moveCarousel(direction) {
+            currentIndex = (currentIndex + direction + cases.length) % cases.length;
+            renderCarousel();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') moveCarousel(-1);
+            if (e.key === 'ArrowRight') moveCarousel(1);
+            if (e.key === 'Escape') closeModal();
+        });
+
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                moveCarousel(diff > 0 ? 1 : -1);
+            }
+        });
+
+        // Modal Functions
+        function openModal(index) {
+            const item = cases[index];
+            document.getElementById('modalImage').src = item.image;
+            document.getElementById('modalTag').textContent = item.tag;
+            document.getElementById('modalTitle').textContent = item.subtitle;
+            document.getElementById('modalBody').innerHTML = item.content;
+            
+            const statsContainer = document.getElementById('modalStats');
+            statsContainer.innerHTML = item.stats.map(stat => `
+                <div class="chart-box text-center">
+                    <div class="text-2xl font-bold ${stat.color} mb-1">${stat.value}</div>
+                    <div class="text-xs text-[#5AC8FA]/70">${stat.label}</div>
+                </div>
+            `).join('');
+
+            const highlightsContainer = document.getElementById('modalHighlights');
+            highlightsContainer.innerHTML = item.highlights.map(h => `
+                <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-[#5AC8FA] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>${h}</span>
+                </li>
+            `).join('');
+
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('modalContent').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('modalContent').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Message Board Functions
+        function renderMessages() {
+            const list = document.getElementById('messagesList');
+            const count = document.getElementById('msgCount');
+            
+            count.textContent = `(${messages.length})`;
+            
+            list.innerHTML = messages.map(msg => `
+                <div class="message-item fade-in">
+                    <div class="flex items-start gap-3">
+                        <div class="message-avatar">${msg.name.charAt(0)}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="message-name text-sm">${msg.name}</span>
+                                ${msg.location ? `<span class="text-xs text-[#5AC8FA]/50">· ${msg.location}</span>` : ''}
+                                <span class="message-time ml-auto">${msg.time}</span>
+                            </div>
+                            <p class="message-content">${msg.content}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function submitMessage() {
+            const nameInput = document.getElementById('msgName');
+            const locationInput = document.getElementById('msgLocation');
+            const contentInput = document.getElementById('msgContent');
+            
+            const name = nameInput.value.trim();
+            const location = locationInput.value.trim();
+            const content = contentInput.value.trim();
+            
+            if (!name) {
+                alert('请输入你的名字');
+                return;
+            }
+            if (!content) {
+                alert('请输入留言内容');
+                return;
+            }
+            
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            messages.unshift({
+                id: Date.now(),
+                name: name,
+                location: location,
+                content: content,
+                time: timeStr
+            });
+            
+            nameInput.value = '';
+            locationInput.value = '';
+            contentInput.value = '';
+            document.getElementById('charCount').textContent = '0/500';
+            
+            renderMessages();
+        }
+
+        document.getElementById('msgContent').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = `${this.value.length}/500`;
+        });
+
+        document.getElementById('msgContent').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                submitMessage();
+            }
+        });
+
+        // Floating bubbles
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            for (let i = 0; i < 25; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 6 + 3;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDuration = (Math.random() * 12 + 8) + 's';
+                bubble.style.animationDelay = (Math.random() * 8) + 's';
+                container.appendChild(bubble);
+            }
+        }
+
+        // Initialize
+        renderCarousel();
+        renderMessages();
+        createBubbles();
+
+        // ========== 小鱼跟随鼠标 ==========
+        const fishCursor = document.getElementById('fish-cursor');
+        document.addEventListener('mousemove', (e) => {
+            fishCursor.style.left = e.clientX - 10 + 'px';
+            fishCursor.style.top = e.clientY - 10 + 'px';
+        });
+
+        // ========== 鼠标移动生成气泡 ==========
+        const bubbleBox = document.getElementById('mouse-bubble-box');
+        document.addEventListener('mousemove', (e) => {
+            const size = Math.random() * 10 + 6;
+            const bubble = document.createElement('div');
+            bubble.classList.add('mouse-bubble');
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = e.clientX - size / 2 + 'px';
+            bubble.style.top = e.clientY - size / 2 + 'px';
+            bubbleBox.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 2500);
+        });
+    </script>
+</body>
+</html>

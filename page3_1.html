@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>升温之后：威尼斯与荷兰的海平面危机</title>
+    <style>
+        :root {
+            --bg-deep: #050f1c;
+            --panel-bg: rgba(6, 22, 38, 0.82);
+            --glass-border: rgba(255, 255, 255, 0.10);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.75);
+            --text-muted: rgba(255, 255, 255, 0.50);
+            --cyan: #4ecdc4;
+            --amber: #ffd166;
+            --coral: #ff6b6b;
+            --crimson: #e63946;
+            --transition: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            cursor: none !important;
+        }
+        * { cursor: none !important; }
+        .page {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+        .panel {
+            position: relative;
+            z-index: 100;
+            background: var(--panel-bg);
+            backdrop-filter: blur(28px) saturate(1.3);
+            border-right: 1px solid var(--glass-border);
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 4px 0 48px rgba(0, 0, 0, 0.45);
+        }
+        /* 返回按钮样式 */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 212px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(78, 205, 196, 0.15);
+            border: 1px solid rgba(78, 205, 196, 0.35);
+            border-radius: 20px;
+            color: var(--cyan);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s var(--transition);
+            backdrop-filter: blur(8px);
+            z-index: 110;
+        }
+        .back-btn:hover {
+            background: rgba(78, 205, 196, 0.3);
+            border-color: rgba(78, 205, 196, 0.6);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+            transform: translateX(-3px);
+        }
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
+        }
+        .panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, transparent 40%);
+            pointer-events: none;
+        }
+        .panel-header h1 {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.8px;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, #fff 0%, #a8d8ea 60%, #7ee8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 12px rgba(78, 205, 196, 0.25));
+        }
+        .panel-header p {
+            font-size: 14px;
+            line-height: 1.85;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        .temp-card {
+            position: relative;
+            margin-top: 42px;
+            padding: 32px;
+            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.03));
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.12);
+            overflow: hidden;
+        }
+        .temp-card::after {
+            content: '';
+            position: absolute;
+            top: -40%; left: -40%;
+            width: 180%; height: 180%;
+            background: radial-gradient(circle at 30% 30%, rgba(78,205,196,0.10) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .temp-display {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .temp-display .number {
+            font-size: 68px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            background: linear-gradient(90deg, #7ee8ff, #ffe082 45%, #ff8a80);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+            transition: background-position 0.5s var(--transition);
+        }
+        .temp-display .unit {
+            font-size: 20px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-left: 4px;
+        }
+        .thermometer-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 28px;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 1;
+        }
+        .thermometer {
+            width: 44px;
+            height: 260px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 30px;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: inset 0 0 24px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .thermometer::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 50%;
+            transform: translateX(-50%);
+            width: 10px; height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
+            border-radius: 10px;
+            filter: blur(2px);
+        }
+        .thermo-fill {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%;
+            height: 28%;
+            background: linear-gradient(to top, #0077b6, #00b4d8, #90e0ef, #ffd166, #ff9e00, #d00000);
+            background-size: 100% 600%;
+            background-position: 0% 100%;
+            border-radius: 0 0 28px 28px;
+            transition: height 0.4s var(--transition), background-position 0.4s var(--transition);
+            box-shadow: 0 0 24px rgba(255, 158, 0, 0.25);
+        }
+        .thermo-bulb {
+            position: absolute;
+            bottom: -14px; left: 50%;
+            transform: translateX(-50%);
+            width: 68px; height: 68px;
+            border-radius: 50%;
+            background: #00b4d8;
+            border: 2px solid rgba(255,255,255,0.25);
+            box-shadow: 0 0 36px rgba(0, 180, 216, 0.55), inset 0 -4px 8px rgba(0,0,0,0.25);
+            transition: all 0.4s var(--transition);
+            z-index: 2;
+        }
+        .thermo-bulb::after {
+            content: '';
+            position: absolute;
+            top: 14px; left: 16px;
+            width: 16px; height: 16px;
+            background: rgba(255,255,255,0.45);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+        .temp-scale {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 240px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            padding: 10px 0;
+        }
+        .temp-scale span {
+            position: relative;
+            padding-left: 14px;
+        }
+        .temp-scale span::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 6px; height: 1px;
+            background: rgba(255,255,255,0.35);
+        }
+        .slider-container { position: relative; z-index: 1; }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%; height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #0077b6, #00b4d8, #90e0ef, #ffd166, #ff9e00, #d00000);
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #ff9e00;
+            cursor: pointer;
+            box-shadow: 0 0 24px rgba(255, 158, 0, 0.55);
+            transition: transform 0.2s var(--transition), box-shadow 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.18);
+            box-shadow: 0 0 32px rgba(255, 158, 0, 0.75);
+        }
+        .risk-info {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            background: rgba(78, 205, 196, 0.14);
+            color: var(--cyan);
+            border: 1px solid rgba(78, 205, 196, 0.25);
+            transition: all 0.4s var(--transition);
+        }
+        .risk-text {
+            font-size: 13px;
+            line-height: 1.85;
+            color: var(--text-secondary);
+        }
+        .panel-footer {
+            font-size: 11px;
+            line-height: 1.8;
+            color: var(--text-muted);
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .scene {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #071526 0%, #0f2b4d 25%, #1a4a6e 50%, #143d5c 100%);
+        }
+        /* 居中海平面示意图 - 长方体盒子 */
+        .rise-img-wrap {
+            position: absolute;
+            left: 50%;
+            top: 28%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 480px;
+            border-radius: 20px;
+            background: rgba(78, 205, 196, 0.12);
+            border: 3px solid rgba(78, 205, 196, 0.45);
+            box-shadow: 
+                0 0 40px rgba(78, 205, 196, 0.35),
+                inset 0 0 60px rgba(78, 205, 196, 0.1);
+            z-index: 5;
+            opacity: 1;
+            transition: opacity 0.5s var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .rise-img-wrap img {
+            width: 95%;
+            height: 95%;
+            object-fit: contain;
+        }
+        .stars {
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(1.5px 1.5px at 20px 40px, rgba(255,255,255,0.85), transparent),
+                radial-gradient(1.5px 1.5px at 60px 90px, rgba(255,255,255,0.65), transparent),
+                radial-gradient(1px 1px at 120px 30px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1.5px 1.5px at 180px 70px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 240px 50px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1.5px 1.5px at 300px 100px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 360px 20px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1.5px 1.5px at 420px 80px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 480px 60px, rgba(255,255,255,0.85), transparent),
+                radial-gradient(1.5px 1.5px at 540px 110px, rgba(255,255,255,0.65), transparent),
+                radial-gradient(1px 1px at 600px 35px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1.5px 1.5px at 660px 85px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 720px 45px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1.5px 1.5px at 780px 95px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 840px 25px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1.5px 1.5px at 900px 75px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 960px 55px, rgba(255,255,255,0.85), transparent),
+                radial-gradient(1.5px 1.5px at 1020px 105px, rgba(255,255,255,0.65), transparent);
+            background-repeat: repeat;
+            background-size: 1100px 160px;
+            opacity: 0.55;
+            animation: twinkle 5s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.4; }
+            100% { opacity: 0.75; }
+        }
+        .sky-glow {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 65% 15%, rgba(255, 210, 150, 0.18) 0%, transparent 35%),
+                radial-gradient(circle at 25% 25%, rgba(100, 200, 255, 0.12) 0%, transparent 30%),
+                linear-gradient(to bottom, rgba(8, 25, 50, 0.95) 0%, rgba(20, 70, 110, 0.4) 35%, transparent 65%);
+            pointer-events: none;
+        }
+        /* 保留海平面海水层全部样式 */
+        .sea {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 22%;
+            background: linear-gradient(to bottom, rgba(79, 195, 247, 0.85) 0%, rgba(3, 155, 229, 0.92) 25%, rgba(1, 87, 155, 0.97) 100%);
+            z-index: 6;
+            transition: height 0.5s var(--transition);
+            overflow: hidden;
+            box-shadow: 0 -12px 48px rgba(0, 150, 200, 0.35);
+        }
+        .sea::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 25px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
+            opacity: 0.7;
+        }
+        .wave {
+            position: absolute;
+            top: -22px; left: -10%;
+            width: 120%; height: 45px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C150,120 350,0 600,60 C850,120 1050,0 1200,60 L1200,120 L0,120 Z' fill='rgba(255,255,255,0.25)'/%3E%3C/svg%3E");
+            background-size: 50% 100%;
+            animation: wave-move 3.5s linear infinite;
+            opacity: 0.85;
+        }
+        .wave.two {
+            top: -16px;
+            opacity: 0.45;
+            animation-duration: 5.5s;
+            animation-direction: reverse;
+        }
+        .wave.three {
+            top: -10px;
+            opacity: 0.25;
+            animation-duration: 7.5s;
+        }
+        @keyframes wave-move {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .bubbles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: bubble-rise 5s ease-in infinite;
+            bottom: 0;
+        }
+        @keyframes bubble-rise {
+            0% { opacity: 0; transform: translateY(0) scale(1); }
+            8% { opacity: 0.55; }
+            92% { opacity: 0.4; }
+            100% { opacity: 0; transform: translateY(-350px) scale(0.4); }
+        }
+        /* 海平面虚线标线 */
+        .warning-line {
+            position: absolute;
+            left: 40px; right: 40px;
+            bottom: 22%;
+            border-top: 1px dashed rgba(255, 255, 255, 0.4);
+            z-index: 12;
+            transition: bottom 0.5s var(--transition);
+            pointer-events: none;
+        }
+        .warning-line span {
+            position: absolute;
+            right: 0; top: -30px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.45);
+            padding: 6px 14px;
+            border-radius: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.12);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .water-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(3, 155, 229, 0) 0%, rgba(3, 155, 229, 0.15) 60%, rgba(1, 87, 155, 0.35) 100%);
+            opacity: 0;
+            transition: opacity 0.6s var(--transition);
+            pointer-events: none;
+            z-index: 8;
+        }
+        .risk-card {
+            position: absolute;
+            right: 40px; top: 40px;
+            width: 340px;
+            padding: 28px;
+            border-radius: 24px;
+            background: rgba(6, 24, 42, 0.68);
+            backdrop-filter: blur(22px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            z-index: 20;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s var(--transition);
+        }
+        .risk-card .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.09);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .risk-card h2 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            line-height: 1.3;
+            letter-spacing: -0.3px;
+        }
+        .risk-card p {
+            font-size: 14px;
+            line-height: 1.85;
+            color: var(--text-secondary);
+        }
+        .data-row {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .data-box {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s var(--transition);
+        }
+        .data-box:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .data-box span {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .data-box strong {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s;
+        }
+        .footer-tip {
+            position: absolute;
+            left: 40px; bottom: 32px;
+            z-index: 30;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 22px;
+            border-radius: 100px;
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.09);
+            font-weight: 500;
+            letter-spacing: 0.4px;
+        }
+
+        /* 小鱼鼠标 */
+        #fish {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/fish.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease-out;
+        }
+        /* 鼠标气泡容器 */
+        #bubbleContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+        .mouse-bubble {
+            position: absolute;
+            background: rgba(173, 216, 230, 0.4);
+            border-radius: 50%;
+            animation: mouse-bubble-rise 2.5s ease-out forwards;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.5);
+        }
+        @keyframes mouse-bubble-rise {
+            0% { opacity: 0.8; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(0.5); }
+        }
+
+        /* 媒体适配 */
+        @media (max-width: 1024px) {
+            .page { grid-template-columns: 340px 1fr; }
+            .panel { padding: 32px 24px; }
+            .risk-card { width: 280px; right: 20px; top: 20px; padding: 20px; }
+            .rise-img-wrap { width: 85%; height: 75%; }
+        }
+        @media (max-width: 768px) {
+            .page {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                overflow-y: auto;
+            }
+            .panel { border-right: none; border-bottom: 1px solid var(--glass-border); }
+            .scene { min-height: 650px; }
+            .rise-img-wrap { width: 90%; height: 65%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义小鱼鼠标 -->
+    <div id="fish"></div>
+    <!-- 鼠标跟随气泡层 -->
+    <div id="bubbleContainer"></div>
+    
+    <main class="page">
+        <aside class="panel">
+            <a href="page3_2.html" class="back-btn">返回</a>
+            <div>
+                <header class="panel-header">
+                    <h1>升温之后<br>海会抵达哪里？</h1>
+                    <p>拖动温度计，观察全球平均温度上升后海平面变化。这是一个关于气候变化、冰川融化与海岸风险的交互式信息可视化。</p>
+                </header>
+                <div class="temp-card">
+                    <div class="temp-display">
+                        <span class="number" id="tempValue">1.5</span>
+                        <span class="unit">℃</span>
+                    </div>
+                    <div class="thermometer-wrap">
+                        <div class="thermometer">
+                            <div class="thermo-fill" id="thermoFill"></div>
+                            <div class="thermo-bulb" id="thermoBulb"></div>
+                        </div>
+                        <div class="temp-scale">
+                            <span>+5°C</span>
+                            <span>+4°C</span>
+                            <span>+3°C</span>
+                            <span>+2°C</span>
+                            <span>+1°C</span>
+                            <span>+0°C</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>工业革命前</span>
+                            <span>灾难未来</span>
+                        </div>
+                        <input id="tempSlider" type="range" min="0" max="5" step="0.1" value="1.5" />
+                    </div>
+                    <div class="risk-info">
+                        <div class="risk-badge" id="riskLevel">中度风险</div>
+                        <p class="risk-text" id="riskText">海平面开始明显上升，威尼斯每年洪水天数从60天增至120天，低洼海岸面临更高风险。</p>
+                    </div>
+                </div>
+            </div>
+            <footer class="panel-footer">
+                注：此页面为视觉化表达原型，并非精确科学模型。真实海平面变化还受到冰盖、热膨胀、区域地形、洋流与政策减排等多因素影响。威尼斯与荷兰数据参考IPCC报告及当地水文记录。
+            </footer>
+        </aside>
+        <section class="scene">
+            <div class="stars"></div>
+            <div class="sky-glow"></div>
+
+            <!-- 居中海平面示意图 -->
+            <div class="rise-img-wrap" id="riseImageBox">
+                <img src="images/rise.png" alt="海平面上升示意图">
+            </div>
+
+            <div class="risk-card">
+                <span class="tag">Climate Visual Story</span>
+                <h2 id="sceneTitle">仍有时间改变方向</h2>
+                <p id="sceneDesc">当升温被控制在较低水平，威尼斯和荷兰仍有时间加固堤坝、提升防洪系统，保护千年文化遗产。</p>
+                <div class="data-row">
+                    <div class="data-box">
+                        <span>模拟海平面上升</span>
+                        <strong id="seaRise">0.42m</strong>
+                    </div>
+                    <div class="data-box">
+                        <span>受影响区域</span>
+                        <strong id="floodRate">18%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保留海平面相关全部DOM -->
+            <div class="warning-line">
+                <span>当前海平面</span>
+            </div>
+            <div class="water-overlay" id="waterOverlay"></div>
+            <div class="sea" id="seaLayer">
+                <div class="wave"></div>
+                <div class="wave two"></div>
+                <div class="wave three"></div>
+                <div class="bubbles" id="bubbleWrap"></div>
+            </div>
+
+            <div class="footer-tip">拖动左侧温度计，图片透明度会随升温逐渐降低，海平面同步升高。</div>
+        </section>
+    </main>
+    <script>
+        // DOM 元素
+        const slider = document.getElementById("tempSlider");
+        const tempValue = document.getElementById("tempValue");
+        const thermoFill = document.getElementById("thermoFill");
+        const thermoBulb = document.getElementById("thermoBulb");
+        const riskLevel = document.getElementById("riskLevel");
+        const riskText = document.getElementById("riskText");
+        const sceneTitle = document.getElementById("sceneTitle");
+        const sceneDesc = document.getElementById("sceneDesc");
+        const seaRise = document.getElementById("seaRise");
+        const floodRate = document.getElementById("floodRate");
+        const riseImageBox = document.getElementById("riseImageBox");
+        const seaLayer = document.getElementById("seaLayer");
+        const warningLine = document.querySelector(".warning-line");
+        const waterOverlay = document.getElementById("waterOverlay");
+        const bubbleWrap = document.getElementById("bubbleWrap");
+
+        // 初始化海水气泡
+        function initSeaBubbles() {
+            for(let i=0; i<12; i++){
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = 3 + Math.random() * 9;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 5 + 's';
+                bubbleWrap.appendChild(bubble);
+            }
+        }
+        initSeaBubbles();
+
+        // 更新画面逻辑
+        function updateScene() {
+            const temp = Number(slider.value);
+            const percent = temp / 5;
+
+            // 1. 温度数字与温度计填充
+            tempValue.textContent = temp.toFixed(1);
+            const fillHeight = 10 + percent * 90;
+            thermoFill.style.height = `${fillHeight}%`;
+            thermoFill.style.backgroundPosition = `0% ${100 - percent * 100}%`;
+
+            // 温度计球体变色
+            let bulbColor, bulbGlow;
+            if (temp < 1.5) {
+                bulbColor = "#00b4d8";
+                bulbGlow = "rgba(0, 180, 216, 0.65)";
+            } else if (temp < 3.0) {
+                bulbColor = "#ff9e00";
+                bulbGlow = "rgba(255, 158, 0, 0.65)";
+            } else {
+                bulbColor = "#e63946";
+                bulbGlow = "rgba(230, 57, 70, 0.65)";
+            }
+            thermoBulb.style.background = bulbColor;
+            thermoBulb.style.boxShadow = `0 0 40px ${bulbGlow}, inset 0 -4px 8px rgba(0,0,0,0.25)`;
+
+            // 2. 图片透明度：0℃=1；5℃=0.34（降低66%）
+            const imgOpacity = 1 - (percent * 0.66);
+            riseImageBox.style.opacity = imgOpacity;
+
+            // 3. 海平面高度同步变化
+            const seaHeight = 22 + percent * 53;
+            seaLayer.style.height = `${seaHeight}%`;
+            warningLine.style.bottom = `${seaHeight}%`;
+            waterOverlay.style.opacity = Math.min(0.6, percent * 0.5);
+
+            // 4. 数据面板数值
+            const simulatedRise = 0.18 + temp * 0.32;
+            const flooded = Math.min(95, Math.round(5 + percent * 85));
+            seaRise.textContent = `${simulatedRise.toFixed(2)}m`;
+            floodRate.textContent = `${flooded}%`;
+
+            // 5. 风险文字切换
+            if (temp < 1.5) {
+                setRisk("低度风险", "rgba(78, 205, 196, 0.15)", "#4ecdc4", "rgba(78, 205, 196, 0.25)",
+                    "升温仍处于相对可控区间。威尼斯每年洪水天数约60天，荷兰堤坝系统运行正常。",
+                    "仍有时间改变方向",
+                    "控制升温意味着保护威尼斯千年建筑和荷兰低地农田。每一次减排，都会延缓海水前进的速度。");
+            } else if (temp < 2.5) {
+                setRisk("中度风险", "rgba(255, 209, 102, 0.15)", "#ffd166", "rgba(255, 209, 102, 0.25)",
+                    "海平面开始明显上升。威尼斯每年洪水天数增至120天，圣马可广场频繁积水。荷兰部分低地开始受潮水影响。",
+                    "圣马可广场开始积水",
+                    "威尼斯MOSE防洪闸门使用频率激增，荷兰需加强堤坝维护。低海拔区域开始失去稳定性。");
+            } else if (temp < 3.8) {
+                setRisk("高度风险", "rgba(255, 107, 107, 0.15)", "#ff6b6b", "rgba(255, 107, 107, 0.25)",
+                    "升温加剧冰川融化。威尼斯半数建筑底层被淹，钟楼基座受损。荷兰堤坝漫水，郁金香田大面积被淹。",
+                    "低地正在消失",
+                    "海水不再只是灾害，而会变成长期边界。威尼斯的贡多拉成为主要交通工具，荷兰风车被迫停运。");
+            } else {
+                setRisk("极端风险", "rgba(230, 57, 70, 0.15)", "#e63946", "rgba(230, 57, 70, 0.25)",
+                    "大范围沿海地区受到威胁。威尼斯几乎完全淹没，仅钟楼顶部露出水面。荷兰低地大面积被海水吞噬。",
+                    "当海成为新的国界",
+                    "这不是远方的故事。海平面上升会改变城市、国家与人类迁徙的格局。威尼斯可能成为全球首个消失的古城。");
+            }
+        }
+
+        function setRisk(label, bg, color, border, text, title, desc) {
+            riskLevel.textContent = label;
+            riskLevel.style.background = bg;
+            riskLevel.style.color = color;
+            riskLevel.style.borderColor = border;
+            riskText.textContent = text;
+            sceneTitle.textContent = title;
+            sceneDesc.textContent = desc;
+        }
+
+        // 滑块监听
+        slider.addEventListener("input", updateScene);
+        updateScene();
+
+        // 小鱼鼠标跟随
+        const fish = document.getElementById('fish');
+        document.addEventListener('mousemove', (e) => {
+            fish.style.left = e.clientX - 20 + 'px';
+            fish.style.top = e.clientY - 20 + 'px';
+        });
+
+        // 鼠标移动生成上浮气泡
+        const bubbleContainer = document.getElementById('bubbleContainer');
+        document.addEventListener('mousemove', (e) => {
+            const size = Math.random() * 12 + 6;
+            const bubble = document.createElement('div');
+            bubble.className = 'mouse-bubble';
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = e.clientX - size / 2 + 'px';
+            bubble.style.top = e.clientY - size / 2 + 'px';
+            bubbleContainer.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 2500);
+        });
+    </script>
+</body>
+</html>
