@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海洋体检单 - 海洋健康评估报告</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ==================== 全局重置与基础样式 ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: url('images/bg01.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none !important;
+        }
+        body, body * {
+            cursor: none !important;
+        }
+
+        /* 背景叠加层增强可读性 */
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background: rgba(5, 40, 80, 0.3);
+        }
+
+        /* ==================== 导航栏 ==================== */
+        .nav-container {
+            position: relative;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 25px 0 15px;
+        }
+
+        .nav-item {
+            background: rgba(0, 40, 80, 0.6);
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 25px;
+            padding: 10px 30px;
+            color: #a8d8f0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 195, 247, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item:hover {
+            background: rgba(79, 195, 247, 0.25);
+            border-color: #4FC3F7;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.8), 0 0 20px rgba(79, 195, 247, 0.4);
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.3), inset 0 0 10px rgba(79, 195, 247, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 海洋信息亮起状态 */
+        .nav-item.active {
+            background: rgba(79, 195, 247, 0.4);
+            border-color: #4FC3F7;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 1), 0 0 30px rgba(79, 195, 247, 0.6);
+            box-shadow: 0 0 25px rgba(79, 195, 247, 0.5), inset 0 0 15px rgba(79, 195, 247, 0.2);
+            animation: nav-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes nav-glow {
+            0%, 100% { box-shadow: 0 0 25px rgba(79, 195, 247, 0.5), inset 0 0 15px rgba(79, 195, 247, 0.2); }
+            50% { box-shadow: 0 0 35px rgba(79, 195, 247, 0.7), inset 0 0 20px rgba(79, 195, 247, 0.3); }
+        }
+
+        /* ==================== 主标题 ==================== */
+        .main-title {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding: 20px 0 30px;
+        }
+
+        .main-title h1 {
+            font-size: 52px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(79, 195, 247, 0.6), 0 0 60px rgba(79, 195, 247, 0.3);
+            letter-spacing: 8px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-title h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #4FC3F7, transparent);
+            border-radius: 2px;
+        }
+
+        /* ==================== 主容器 ==================== */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: calc(100vh - 180px);
+            margin: 0 auto;
+            padding: 0 20px 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        /* ==================== 三列布局 ==================== */
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .column-left { flex: 0.9; }
+        .column-center { flex: 1.2; }
+        .column-right { flex: 0.9; }
+
+        /* ==================== 区块标题 ==================== */
+        .section-header {
+            background: rgba(0, 40, 80, 0.85);
+            border: 1px solid rgba(79, 195, 247, 0.4);
+            border-radius: 10px;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #4FC3F7;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+            margin-bottom: 5px;
+            position: relative;
+            overflow: hidden;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 195, 247, 0.15), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* ==================== 玻璃卡片 ==================== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(79, 195, 247, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(79, 195, 247, 0.1);
+        }
+
+        /* ==================== 左列：基本信息 ==================== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.12);
+            border-left: 3px solid #4FC3F7;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(79, 195, 247, 0.1);
+            transform: translateX(5px);
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #a8d8f0;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .info-value .highlight {
+            color: #4FC3F7;
+            font-size: 20px;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+        }
+
+        /* ==================== 图表容器 ==================== */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(79, 195, 247, 0.25);
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 13px;
+            color: #a8d8f0;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 150px;
+        }
+
+        .chart-wrapper-large {
+            height: 200px;
+        }
+
+        /* ==================== 中列：海洋功能卡片 ==================== */
+        .function-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .function-card {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .function-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(79, 195, 247, 0.6);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(79, 195, 247, 0.15);
+        }
+
+        .function-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .function-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .function-card:hover .function-image img {
+            transform: scale(1.1);
+        }
+
+        .image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(to top, rgba(5, 58, 110, 0.92) 0%, rgba(5, 58, 110, 0.6) 50%, rgba(5, 58, 110, 0.2) 100%);
+            z-index: 2;
+        }
+
+        .function-content {
+            padding: 12px;
+            position: relative;
+            z-index: 3;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 100%;
+        }
+
+        .function-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 8px rgba(79, 195, 247, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .function-desc {
+            font-size: 12px;
+            color: #c8e6f5;
+            line-height: 1.6;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .function-card:hover .function-desc {
+            opacity: 1;
+            max-height: 200px;
+            margin-top: 8px;
+        }
+
+        /* 卡片角标装饰 */
+        .card-corner {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border-top: 2px solid rgba(79, 195, 247, 0.5);
+            border-right: 2px solid rgba(79, 195, 247, 0.5);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+
+        .function-card:hover .card-corner {
+            width: 28px;
+            height: 28px;
+            border-color: rgba(79, 195, 247, 0.9);
+        }
+
+        /* ==================== 右列：指标检证 ==================== */
+        .indicator-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .indicator-item {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(79, 195, 247, 0.25);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-item:hover {
+            background: rgba(79, 195, 247, 0.08);
+            border-color: rgba(79, 195, 247, 0.4);
+            transform: translateX(-3px);
+        }
+
+        .indicator-info h4 {
+            font-size: 14px;
+            color: #4FC3F7;
+            margin-bottom: 5px;
+        }
+
+        .indicator-info p {
+            font-size: 12px;
+            color: #a8d8f0;
+            line-height: 1.4;
+        }
+
+        .indicator-tag {
+            background: rgba(255, 138, 101, 0.15);
+            color: #FF8A65;
+            border: 1px solid rgba(255, 138, 101, 0.4);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            animation: pulse-warning 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 138, 101, 0.2); }
+            50% { box-shadow: 0 0 15px rgba(255, 138, 101, 0.4); }
+        }
+
+        .warning-value {
+            color: #FF8A65;
+            font-weight: 800;
+        }
+
+        /* ==================== 底部功能图表区域（放在海洋功能下面） ==================== */
+        .bottom-function-charts {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            margin: 15px 0 0 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bottom-chart-box {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .bottom-chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #4FC3F7;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+        }
+
+        .bottom-chart-wrapper {
+            height: 160px;
+            position: relative;
+        }
+
+        /* ==================== 印章 ==================== */
+        .stamp-container {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .stamp {
+            width: 100px;
+            height: 100px;
+            border: 3px double rgba(255, 138, 101, 0.6);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 138, 101, 0.7);
+            font-weight: 900;
+            transform: rotate(-15deg);
+            animation: stamp-float 4s ease-in-out infinite;
+            position: relative;
+        }
+
+        .stamp::before {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 1px solid rgba(255, 138, 101, 0.4);
+            border-radius: 50%;
+        }
+
+        @keyframes stamp-float {
+            0%, 100% { transform: rotate(-15deg) translateY(0); }
+            50% { transform: rotate(-12deg) translateY(-5px); }
+        }
+
+        .stamp-title {
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .stamp-core {
+            font-size: 14px;
+            margin: 2px 0;
+            border-top: 1px solid rgba(255, 138, 101, 0.5);
+            border-bottom: 1px solid rgba(255, 138, 101, 0.5);
+            padding: 2px 0;
+        }
+
+        .stamp-en {
+            font-size: 7px;
+            letter-spacing: 1px;
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .column { width: 100%; }
+            .function-grid { grid-template-columns: 1fr; }
+            .bottom-function-charts { flex-direction: column; }
+            .nav-container { flex-wrap: wrap; gap: 15px; }
+            .nav-item { font-size: 14px; padding: 8px 20px; }
+        }
+
+        /* ==================== 粒子效果 ==================== */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79, 195, 247, 0.3) 0%, transparent 70%);
+            animation: float-up linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* 小鱼鼠标 */
+        #fish {
+          position: fixed;
+          width: 40px;
+          height: 40px;
+          background-image: url('images/fish.png');
+          background-size: contain;
+          background-repeat: no-repeat;
+          pointer-events: none;
+          z-index: 9999;
+        }
+
+        /* 鼠标跟随气泡容器 */
+        #bubbleContainer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 1;
+        }
+        /* 鼠标移动产生的上浮气泡 */
+        #bubbleContainer .bubble {
+          position: absolute;
+          background: rgba(173, 216, 230, 0.3);
+          border-radius: 50%;
+          animation: rise 2.5s ease-out forwards;
+        }
+        @keyframes rise {
+          0% { opacity: 0.8; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-120px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义小鱼鼠标 -->
+    <div id="fish"></div>
+    <!-- 鼠标跟随气泡层 -->
+    <div id="bubbleContainer"></div>
+    <!-- 背景叠加层 -->
+    <div class="bg-overlay"></div>
+
+    <!-- 粒子效果 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 导航栏 - 海洋信息亮起 -->
+    <nav class="nav-container">
+        <a href="he01.html" class="nav-item">首页</a>
+        <a href="page2.html" class="nav-item active">海洋信息</a>
+        <a href="page3_2.html" class="nav-item">海洋危机</a>
+        <a href="page4.html" class="nav-item">海洋保护</a>
+    </nav>
+
+    <!-- 主标题 -->
+    <div class="main-title">
+        <h1>体检单</h1>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-container">
+        <!-- 左列：基本信息 -->
+        <div class="column column-left">
+            <div class="section-header">基本信息</div>
+            
+            <div class="glass-card">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">体检对象</div>
+                        <div class="info-value">海洋</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">形成年龄</div>
+                        <div class="info-value"><span class="highlight">45</span> 亿年</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">总面积</div>
+                        <div class="info-value"><span class="highlight">3.61</span> 亿 km²</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">已知生物</div>
+                        <div class="info-value"><span class="highlight">23</span> 万 + 种</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 海陆面积环形占比图 -->
+            <div class="chart-container">
+                <div class="chart-title">海陆面积环形占比图</div>
+                <div class="chart-wrapper">
+                    <canvas id="chartRing"></canvas>
+                </div>
+            </div>
+
+            <!-- 海洋深度柱状对比图 -->
+            <div class="chart-container">
+                <div class="chart-title">海洋深度柱状对比图 (m)</div>
+                <div class="chart-wrapper">
+                    <canvas id="chartDepth"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中列：海洋功能 -->
+        <div class="column column-center">
+            <div class="section-header">海洋功能</div>
+            
+            <div class="function-grid">
+                <!-- 卡片1：全球气候调节器 -->
+                <div class="function-card">
+                    <div class="card-corner"></div>
+                    <div class="function-image">
+                        <img src="images/sea01.png" alt="全球气候调节器">
+                    </div>
+                    <div class="image-overlay"></div>
+                    <div class="function-content">
+                        <div class="function-title">🌊 全球气候调节器</div>
+                        <div class="function-desc">
+                            【地球温控系统】类比人体皮肤与体温调节中枢。大量吸收、储存并输送太阳辐射，吸收全球温室效应超90%的余热以及大量二氧化碳，是地球减缓温室效应的最核心屏障。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 卡片2：生态栖息机能 -->
+                <div class="function-card">
+                    <div class="card-corner"></div>
+                    <div class="function-image">
+                        <img src="images/sea02.png" alt="生态栖息机能">
+                    </div>
+                    <div class="image-overlay"></div>
+                    <div class="function-content">
+                        <div class="function-title">🐠 生态栖息机能</div>
+                        <div class="function-desc">
+                            【物种繁衍子宫】类比造血干细胞及子宫繁衍。作为亿万海洋生物的生存家园，从微观浮游生物到庞大蓝鲸，全方位维持着全球不可替代的顶级生物多样性与生态进化链。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 卡片3：文旅景观机能 -->
+                <div class="function-card">
+                    <div class="card-corner"></div>
+                    <div class="function-image">
+                        <img src="images/sea03.png" alt="文旅景观机能">
+                    </div>
+                    <div class="image-overlay"></div>
+                    <div class="function-content">
+                        <div class="function-title">🏖️ 文旅景观机能</div>
+                        <div class="function-desc">
+                            【精神神经赋能】类比高级神经调节与心理舒缓。广袤的滨海自然带提供人文休闲、美学景观以及人类文明的精神自然寄托，承载着不可估量的生态文化服务价值。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 卡片4：资源供给机能 -->
+                <div class="function-card">
+                    <div class="card-corner"></div>
+                    <div class="function-image">
+                        <img src="images/sea04.png" alt="资源供给机能">
+                    </div>
+                    <div class="image-overlay"></div>
+                    <div class="function-content">
+                        <div class="function-title">⚓ 资源供给机能</div>
+                        <div class="function-desc">
+                            【代谢营养网络】类比消化与循环系统。高产出源源不断的渔业高蛋白营养、全球化航运主大动脉、蕴藏丰富的海底矿产能源与全球基础淡水循环的源泉蒸发量。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部图表 - 放在海洋功能下面 -->
+            <div class="bottom-function-charts">
+                <div class="bottom-chart-box">
+                    <div class="bottom-chart-title">全球资源宝库动态佐证指标</div>
+                    <div class="bottom-chart-wrapper">
+                        <canvas id="chartResource"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bottom-chart-box">
+                    <div class="bottom-chart-title">全球气候调节效能数据交互图表</div>
+                    <div class="bottom-chart-wrapper">
+                        <canvas id="chartClimate"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右列：指标检证 -->
+        <div class="column column-right">
+            <div class="section-header">指标检证</div>
+            
+            <div class="glass-card">
+                <div class="indicator-list">
+                    <div class="indicator-item">
+                        <div class="indicator-info">
+                            <h4>海表平均温度</h4>
+                            <p>较工业化前升高 <span class="warning-value">0.85℃</span></p>
+                        </div>
+                        <span class="indicator-tag">异常升温</span>
+                    </div>
+                    
+                    <div class="indicator-item">
+                        <div class="indicator-info">
+                            <h4>海水PH酸碱值</h4>
+                            <p>PH由8.2降至8.04，酸度提升 <span class="warning-value">18%</span></p>
+                        </div>
+                        <span class="indicator-tag">逐步酸化</span>
+                    </div>
+                    
+                    <div class="indicator-item">
+                        <div class="indicator-info">
+                            <h4>海陆保护覆盖率</h4>
+                            <p>陆地保护覆盖率17.33%、海洋仅 <span class="warning-value">9.79%</span></p>
+                        </div>
+                        <span class="indicator-tag">保护不足</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 全球海陆生态保护盖率对比检查 -->
+            <div class="chart-container">
+                <div class="chart-title">全球海陆生态保护盖率对比检查 (%)</div>
+                <div class="chart-wrapper chart-wrapper-large">
+                    <canvas id="chartCoverage"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 印章 -->
+    <div class="stamp-container">
+        <div class="stamp">
+            <span class="stamp-title">地球健康中心</span>
+            <span class="stamp-core">报告专用章</span>
+            <span class="stamp-en">HEALTH CERTIFIED</span>
+        </div>
+    </div>
+
+    <script>
+        // 1. 小鱼跟随鼠标
+        const fish = document.getElementById('fish');
+        document.addEventListener('mousemove', (e) => {
+          fish.style.left = e.clientX - 10 + 'px';
+          fish.style.top = e.clientY - 10 + 'px';
+        });
+
+        // 2. 鼠标移动生成上浮气泡
+        const bubbleContainer = document.getElementById('bubbleContainer');
+        document.addEventListener('mousemove', (e) => {
+          const size = Math.random() * 10 + 6;
+          const bubble = document.createElement('div');
+          bubble.classList.add('bubble');
+          bubble.style.width = size + 'px';
+          bubble.style.height = size + 'px';
+          bubble.style.left = e.clientX - size/2 + 'px';
+          bubble.style.top = e.clientY - size/2 + 'px';
+          bubbleContainer.appendChild(bubble);
+          setTimeout(() => bubble.remove(), 2500);
+        });
+
+        // ==================== 粒子系统 ====================
+        function initParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 5 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                particle.style.animationDelay = (Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        initParticles();
+
+        // ==================== Chart.js 全局配置 ====================
+        Chart.defaults.color = '#a8d8f0';
+        Chart.defaults.borderColor = 'rgba(79, 195, 247, 0.1)';
+        Chart.defaults.font.family = '"Microsoft YaHei", "PingFang SC", sans-serif';
+
+        const primaryColor = '#0a4a8a';
+        const accentColor = '#4FC3F7';
+        const warningColor = '#FF8A65';
+        const successColor = '#81C784';
+
+        // ==================== 图表1：海陆面积环形占比图 ====================
+        const ctxRing = document.getElementById('chartRing').getContext('2d');
+        new Chart(ctxRing, {
+            type: 'doughnut',
+            data: {
+                labels: ['海洋面积 (71%)', '陆地面积 (29%)'],
+                datasets: [{
+                    data: [71, 29],
+                    backgroundColor: [
+                        '#0d5aa5',
+                        'rgba(200, 230, 245, 0.3)'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                animation: {
+                    animateRotate: true,
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#a8d8f0',
+                            font: { size: 11 },
+                            padding: 15,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(5, 58, 110, 0.9)',
+                        titleColor: '#4FC3F7',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(79, 195, 247, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: []
+        });
+
+        // ==================== 图表2：海洋深度柱状对比图 ====================
+        const ctxDepth = document.getElementById('chartDepth').getContext('2d');
+        new Chart(ctxDepth, {
+            type: 'bar',
+            data: {
+                labels: ['平均深度', '最大深度'],
+                datasets: [{
+                    label: '深度 (米)',
+                    data: [3795, 11034],
+                    backgroundColor: [
+                        'rgba(79, 195, 247, 0.7)',
+                        '#0d5aa5'
+                    ],
+                    borderColor: [
+                        'rgba(79, 195, 247, 0.9)',
+                        'rgba(13, 90, 165, 0.9)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(5, 58, 110, 0.9)',
+                        titleColor: '#4FC3F7',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(79, 195, 247, 0.3)',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toLocaleString() + ' m';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(79, 195, 247, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return value >= 1000 ? (value / 1000) + 'k' : value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ==================== 图表3：海陆保护覆盖率对比 ====================
+        const ctxCoverage = document.getElementById('chartCoverage').getContext('2d');
+        new Chart(ctxCoverage, {
+            type: 'bar',
+            data: {
+                labels: ['2010年消费', '2021年消费'],
+                datasets: [{
+                    label: '保护覆盖率 (%)',
+                    data: [17.33, 9.79],
+                    backgroundColor: [
+                        'rgba(129, 199, 132, 0.8)',
+                        'rgba(255, 138, 101, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(129, 199, 132, 1)',
+                        'rgba(255, 138, 101, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(5, 58, 110, 0.9)',
+                        titleColor: '#4FC3F7',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(79, 195, 247, 0.3)',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            title: function() {
+                                return '';
+                            },
+                            label: function(context) {
+                                const labels = ['陆地保护覆盖率', '海洋保护覆盖率'];
+                                return labels[context.dataIndex] + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 20,
+                        grid: {
+                            color: 'rgba(79, 195, 247, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            display: false,
+                            color: '#a8d8f0',
+                            font: { size: 11, weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ==================== 图表4：全球资源宝库动态佐证指标 ====================
+        const ctxResource = document.getElementById('chartResource').getContext('2d');
+        new Chart(ctxResource, {
+            type: 'bar',
+            data: {
+                labels: ['2010年消费', '2021年消费'],
+                datasets: [{
+                    label: '渔业消费量 (亿吨)',
+                    data: [1.28, 1.625],
+                    backgroundColor: [
+                        'rgba(79, 195, 247, 0.5)',
+                        'rgba(79, 195, 247, 0.85)'
+                    ],
+                    borderColor: 'rgba(79, 195, 247, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(5, 58, 110, 0.9)',
+                        titleColor: '#4FC3F7',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(79, 195, 247, 0.3)',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return '消费量: ' + context.parsed.y + ' 亿吨';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 2.0,
+                        grid: {
+                            color: 'rgba(79, 195, 247, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 10 },
+                            stepSize: 0.5
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ==================== 图表5：全球气候调节效能数据交互图表 ====================
+        const ctxClimate = document.getElementById('chartClimate').getContext('2d');
+        
+        // 创建渐变填充
+        const gradientClimate = ctxClimate.createLinearGradient(0, 0, 0, 200);
+        gradientClimate.addColorStop(0, 'rgba(79, 195, 247, 0.3)');
+        gradientClimate.addColorStop(1, 'rgba(79, 195, 247, 0)');
+
+        new Chart(ctxClimate, {
+            type: 'line',
+            data: {
+                labels: ['2014', '2017', '2021', '2024'],
+                datasets: [{
+                    label: 'CO₂吸收量 (亿吨)',
+                    data: [22.0, 24.6, 27.2, 29.5],
+                    borderColor: '#4FC3F7',
+                    backgroundColor: gradientClimate,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#0a4a8a',
+                    pointBorderColor: '#4FC3F7',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 10,
+                    pointHoverBackgroundColor: '#FF8A65',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(5, 58, 110, 0.95)',
+                        titleColor: '#4FC3F7',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(79, 195, 247, 0.5)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label + '年';
+                            },
+                            label: function(context) {
+                                return 'CO₂吸收量: ' + context.parsed.y + ' 亿吨';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 20,
+                        max: 32,
+                        grid: {
+                            color: 'rgba(79, 195, 247, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 10 },
+                            stepSize: 4
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(79, 195, 247, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#a8d8f0',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ==================== 导航交互 ====================
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.05)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // ==================== 功能卡片交互增强 ====================
+        document.querySelectorAll('.function-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.zIndex = '10';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.zIndex = '1';
+            });
+        });
+    </script>
+</body>
+</html>'''

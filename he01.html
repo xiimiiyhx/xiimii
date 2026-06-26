@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓝色体检单</title>
+<style>
+/* 基础全局样式 沿用深海风格 */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    overflow-x: hidden;
+    background-color: #000;
+    scroll-behavior: smooth;
+}
+body {
+    cursor: none !important;
+    /* 初始禁止滚动 */
+    overflow-y: hidden;
+    /* 禁止触摸滑动 */
+    touch-action: none;
+}
+
+/* 全局禁用系统鼠标 */
+*:hover, *:active, *:focus, a, button, input, [role="button"] {
+  cursor: none !important;
+}
+
+/* 核心渐变背景：海面到深海 */
+.ocean-container {
+    width: 100%;
+    position: relative;
+    background: linear-gradient(to bottom, 
+        #7cd1e8 0%,    /* 海面 */
+        #2980b9 15%,   /* 浅海 */
+        #1f4068 40%,   /* 暮色带 */
+        #162447 70%,   /* 午夜带 */
+        #0b0c10 100%   /* 深渊带 */
+    );
+}
+
+/* 深度指示器样式（默认隐藏） */
+.depth-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: none; /* 默认隐藏 */
+}
+
+/* 每一层页面通用样式 */
+.sea-layer {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 10%;
+    text-align: center;
+    box-sizing: border-box;
+}
+/* 底部按钮容器，固定每层最下方 */
+.layer-bottom-btn {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* 标题、文本渐入动画 */
+.sea-layer h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.sea-layer p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    line-height: 1.6;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transform: translateY(30px);
+    opacity: 0;
+    transition: all 1s ease 0.3s;
+}
+.sea-layer.visible p {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* 标题图片渐入样式 */
+.title-image {
+    display: block;
+    margin: 0 auto;
+    max-width: 1050px;
+    width: 150%;
+    height: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+    filter: drop-shadow(0 0 20px rgba(124, 209, 232, 0.6));
+}
+.title-image.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- 首页顶部漂浮图片 --- */
+.float-top {
+    position: absolute;
+    top: 40px;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0.85;
+    filter: drop-shadow(0 0 12px rgba(124, 209, 232, 0.55));
+}
+.float-top.f1 { left: 6%; width: 130px; animation: drift1 5s ease-in-out infinite; }
+.float-top.f2 { left: 22%; top: 25px; width: 100px; animation: drift2 6s ease-in-out infinite; }
+.float-top.f3 { right: 25%; width: 150px; animation: drift1 7s ease-in-out infinite; }
+.float-top.f4 { right: 6%; width: 110px; animation: drift2 5.5s ease-in-out infinite; }
+.float-top.f5 { left: 44%; top: 15px; width: 110px; animation: drift1 6.5s ease-in-out infinite; }
+@keyframes drift1 {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-20px) rotate(3deg); }
+}
+@keyframes drift2 {
+    0%, 100% { transform: translateY(0) rotate(4deg); }
+    50%      { transform: translateY(-28px) rotate(-4deg); }
+}
+
+/* 潜入海底按钮：默认隐藏 + 渐入动画 */
+.dive-btn {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.8s ease;
+    pointer-events: none;
+    padding:12px 32px; 
+    background:rgba(26,115,232,0.3); 
+    border:1px solid rgba(26,115,232,0.4); 
+    border-radius:999px; 
+    text-decoration:none; 
+    color:#fff;
+}
+.dive-btn.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* 漂浮元素通用样式 */
+.floating-element {
+    position: absolute;
+    pointer-events: none;
+    transition: transform 0.1s ease-out;
+    opacity: 0.7;
+}
+/* 漂浮内图片开启悬浮交互 */
+.floating-element img {
+    pointer-events: auto;
+}
+
+/* 气泡样式 */
+.bubble {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 2px 5px rgba(255,255,255,0.5);
+}
+
+/* 水母 */
+.jellyfish {
+    font-size: 3.5rem;
+    filter: drop-shadow(0 0 10px rgba(0, 238, 255, 0.6));
+    animation: pulse 3s infinite ease-in-out;
+}
+
+/* 潜水员 */
+.diver {
+    font-size: 4rem;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+}
+
+/* 发光鱼 */
+.anglerfish {
+    font-size: 4rem;
+    filter: drop-shadow(0 0 20px #00ffcc);
+}
+
+/* 水母呼吸动画 */
+@keyframes pulse {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.1) translateY(-10px); }
+}
+
+/* 滚动提示箭头 */
+.scroll-down {
+    position: absolute;
+    bottom: 120px;
+    font-size: 1rem;
+    animation: bounce 2s infinite;
+    opacity: 0.8;
+}
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+/* 小鱼鼠标 */
+#fish {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  background-image: url('images/fish.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* 鼠标跟随气泡容器 */
+#bubbleContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+/* 鼠标移动产生的上浮气泡 */
+#bubbleContainer .bubble {
+  position: absolute;
+  background: rgba(173, 216, 230, 0.3);
+  border-radius: 50%;
+  animation: rise 2.5s ease-out forwards;
+}
+@keyframes rise {
+  0% { opacity: 0.8; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-120px); }
+}
+
+/* ========== 卡通悬浮小卡片样式（无遮罩、卡通柔和色调） ========== */
+.tip-card {
+  position: fixed;
+  width: 300px;
+  background: #e6f7ff;
+  border: 3px solid #69b1ff;
+  border-radius: 18px;
+  padding: 16px;
+  z-index: 999;
+  display: none;
+  /* 卡通柔和阴影 */
+  box-shadow: 0 6px 16px rgba(80, 160, 255, 0.35);
+  transition: opacity 0.25s ease;
+}
+.tip-title {
+  font-size: 20px;
+  color: #0050b3;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+.tip-card textarea {
+  width: 100%;
+  min-height: 90px;
+  background: #fff;
+  border: 2px solid #94c9ff;
+  border-radius: 12px;
+  /* padding: 8px 10px; */
+  color: #0f2447;
+  font-size: 18px;
+  resize: none;
+  outline: none;
+}
+.tip-card textarea:focus {
+  border-color: #4096ff;
+}
+</style>
+</head>
+
+<body>
+<!-- 自定义小鱼鼠标 -->
+<div id="fish"></div>
+<!-- 鼠标跟随气泡层 -->
+<div id="bubbleContainer"></div>
+
+<!-- 深度指示器 -->
+<div class="depth-indicator" id="depthBox">当前深度: <span id="depth-value">0</span> 米</div>
+
+<!-- 卡通悬浮卡片（无遮罩，页面底层不虚化） -->
+<div class="tip-card" id="hoverCard">
+  <div class="tip-title" id="tipTitle">海洋生物的呼救</div>
+  <textarea id="tipText" placeholder="写下这只海洋生物的痛苦遭遇..."></textarea>
+</div>
+
+<!-- 整体海洋容器 -->
+<div class="ocean-container">
+    <!-- 页面1 海面首页 -->
+    <section id="page1" class="sea-layer visible" style="height: 120vh;">
+        <div class="ocean-wave"></div>
+        <!-- 顶部漂浮图片组 -->
+        <img src="images/垃圾.png" alt="" class="float-top f1">
+        <img src="images/垃圾1.png" alt="" class="float-top f2">
+        <img src="images/垃圾22.png" alt="" class="float-top f3">
+        <img src="images/垃圾33.png" alt="" class="float-top f4">
+        <img src="images/拖鞋.png" alt="" class="float-top f5">
+
+        <!-- 图片标题 透明度渐入 -->
+        <img src="images/image_题目.png" alt="蓝色体检单" class="title-image" id="zhTitle">
+        
+        <p>海洋生态信息可视化 · 探寻海洋病症</p>
+
+        <!-- 滚动提示 -->
+        <div class="scroll-down">滚动鼠标，诊断海洋伤痛 ↓</div>
+        <!-- 潜入按钮放页面最底部 -->
+        <div class="layer-bottom-btn">
+            <a href="#page2" class="dive-btn">潜入海底</a>
+        </div>
+    </section>
+
+    <!-- 页面2 阳光透射带 -->
+    <section id="page2" class="sea-layer">
+        <h1>深海问诊 —— 满目疮的海洋体检实录</h1>
+        <p>踏入深海秘境，我们得以直面满目疮的海洋。废弃渔网捆缚海龟、彩色塑料侵蚀海豹内脏
+        化纤细丝扭曲水母身躯，形形色色的海洋生物满身创伤，每一道伤痕，都是大海待诊断的污
+        染病症，藏在碧波之下，无声诉说着塑料垃圾带来的深重伤害。</p>
+
+        <div class="floating-element bubble" style="top: 20%; left: 15%; width: 30px; height: 30px;" data-speed="0.5"></div>
+        <div class="floating-element bubble" style="top: 50%; right: 20%; width: 15px; height: 15px;" data-speed="0.8"></div>
+        <div class="floating-element diver" style="top: 40%; left: 70%;" data-speed="0.2">
+        <img src="images/潜水面罩.png" alt="潜水面罩" data-title="潜水员" data-content="我是深海潜水员，亲眼目睹了海洋被塑料污染的惨状。每下潜一次，都能看到更多的垃圾漂浮在海中。" style="width: 200px; height: auto; vertical-align: middle;">
+</div>
+    </section>
+
+    <!-- 页面3 暮色过渡带 -->
+    <section id="page3" class="sea-layer">
+        <h1>龟甲勒痕 —— 渔具造成的体表外伤</h1>
+        <p>废弃渔网层层缠裹海龟甲壳与鳍肢，网丝深陷皮肉，禁锢海龟游动换气的自由，是近海海洋最直观、高发的物理创伤。</p>
+
+        <div class="floating-element jellyfish" style="top: -15%; left: 25%;" data-speed="0.4">
+         <img src="images/海豹吃垃圾.png" alt="海豹误食海洋垃圾" data-title="受伤的海豹" data-content="呜呜...我不小心吞下了塑料碎片，现在肚子好痛。人类，请不要再乱扔垃圾了！" style="width: 400px; height: auto;">
+        </div>
+           <div class="floating-element jellyfish" style="top: 5%; left: 65%;" data-speed="0.4">
+         <img src="images/海星.png" alt="海星"style="width: 150px; height: auto;"data-title="伤痕海星的哭诉" data-content="漂浮的塑料碎片割破了我的体表，废弃绳结捆住身体寸步难行，蔚蓝家园早已布满塑料凶器，求求人类减少塑料垃圾排放。">
+        </div>
+         <img src="images/ima_海龟.png" alt="海龟" data-title="被困的海龟" data-content="这些渔网缠住了我的鳍肢，我已经很久没有自由游动了。谁来帮帮我？" style="width: 270px; height: auto;">
+        </div>
+        <div class="floating-element jellyfish" style="top: 99%; left: 10%;" data-speed="0.4">
+         <img src="images/螃蟹.png" alt="螃蟹" data-title="被困的螃蟹"style="width: 150px; height: auto;">
+        </div>
+        <div class="floating-element bubble" style="top: 60%; left: 80%; width: 25px; height: 25px;" data-speed="0.6"></div>
+         <div class="floating-element jellyfish" style="top: 70%; right: 15%;" data-speed="0.3">
+          <img src="images/imag_塑料鱼.png" alt="鲜艳塑料鱼" data-title="塑料鱼陷阱" data-content="我不是真正的鱼！我是人类丢弃的塑料垃圾，会让海洋生物误以为是食物而误食。" style="width: 100px; height: auto;">
+        </div>
+    </section>
+
+    <!-- 页面4 午夜无光带 -->
+    <section id="page4" class="sea-layer">
+        <h1>内脏淤积 —— 塑料引发的慢性内科病</h1>
+        <p>鲜亮塑料鱼、塑料碎片迷惑海豹捕食，误食后无法消化分解，长期堆积肠胃，持续损伤脏器，成为危及海洋哺乳动物的隐形顽疾。</p>
+
+        <div class="floating-element anglerfish" style="top: 90%; right: 25%;" data-speed="0.8">
+          <img src="images/垃圾.png" alt="垃圾"style="width: 130px; height: auto;">
+        </div>
+        <div class="floating-element bubble" style="top: 20%; left: 40%;" data-speed="0.7"></div>
+    </section>
+
+    <!-- 页面5 深渊带 -->
+    <section id="page5" class="sea-layer" style="height: 150vh;">
+        <h1>触手畸变 —— 微塑料扭曲浮游生灵</h1>
+        <p>化纤细丝缠绕水母通透触手，将原生柔软躯体扭成僵硬的光纤形态，彻底干扰水母觅食感知，揭开微塑料对深海底层生态的不可逆破坏。</p>
+
+        <div class="floating-element anglerfish" style="top: 20%; left: 20%; transform: scaleX(-1);" data-speed="0.3">🐙</div>
+        <div class="floating-element plastic-fish" style="top: 50%; left: 75%; transform: scaleX(-1);" data-speed="0.3">
+          <img src="images/鲜艳塑料鱼.png" alt="塑料鱼" style="width: 95px; height: auto;">
+        </div>
+
+        <div class="floating-element fiber-jellyfish" style="top: 35%; right: 60%;" data-speed="0.2">
+          <img src="images/image_珊瑚.png" alt="珊瑚" style="width: 500px; height: auto;" data-title="破碎的海底骨架" data-content="修复需要数年时间，可人类一次捕捞，就能毁掉我数十年的生长。" style="width: 130px; height: auto;">
+        </div>
+        <div class="floating-element fiber-jellyfish" style="top: 55%; right: 10%;" data-speed="0.2">
+          <img src="images/image_光线水母.png" alt="光纤水母" style="width: 500px; height: auto;" data-title="海洋里受伤的水母" data-content="呜呜…… 轻薄塑料袋死死裹住我的伞体。" style="width: 130px; height: auto;">
+        </div>
+        <div class="floating-element fiber-jellyfish" style="top: 125%; right: 60%;" data-speed="0.2">
+          <img src="images/螃蟹 (2).png" alt="螃蟹" style="width: 500px; height: auto;" data-title="被垃圾缠绕的螃蟹" data-content="呜呜…… 塑料绳死死捆住我的钳子，瓶罐、餐叉堆满身边，我动弹不得，连挖沙藏身都做不到，求求人类别再往海里丢弃塑料垃圾了！" style="width: 130px; height: auto;">
+        </div>
+         <div class="floating-element fiber-jellyfish" style="top: 125%; right: 10%;" data-speed="0.2">
+          <img src="images/拖鞋.png" alt="拖鞋" style="width: 500px; height: auto;">
+        </div>
+        <div class="layer-bottom-btn">
+            <a href="page2.html" class="dive-btn">建立档案</a>
+        </div>
+    </section>
+</div>
+
+<script>
+// 1. 小鱼跟随鼠标
+const fish = document.getElementById('fish');
+document.addEventListener('mousemove', (e) => {
+  fish.style.left = e.clientX - 10 + 'px';
+  fish.style.top = e.clientY - 10 + 'px';
+});
+
+// 2. 鼠标移动生成上浮气泡
+const container = document.getElementById('bubbleContainer');
+document.addEventListener('mousemove', (e) => {
+  const size = Math.random() * 10 + 6;
+  const bubble = document.createElement('div');
+  bubble.classList.add('bubble');
+  bubble.style.width = size + 'px';
+  bubble.style.height = size + 'px';
+  bubble.style.left = e.clientX - size/2 + 'px';
+  bubble.style.top = e.clientY - size/2 + 'px';
+  container.appendChild(bubble);
+  setTimeout(() => bubble.remove(), 2500);
+});
+
+// ========== 标题图片渐入 + 解锁滚动 ==========
+const zhTitle = document.getElementById('zhTitle');
+const diveBtns = document.querySelectorAll('.dive-btn');
+const bodyEl = document.body;
+
+// 禁止滚轮事件（初始拦截）
+function preventScroll(e) {
+  e.preventDefault();
+}
+window.addEventListener('wheel', preventScroll, { passive: false });
+
+// 标题图片渐入动画
+setTimeout(() => {
+  zhTitle.classList.add('show');
+}, 200);
+
+// 图片动画结束：显示按钮 + 解除所有滚动限制
+setTimeout(() => {
+  diveBtns.forEach(btn => btn.classList.add('show'));
+  window.removeEventListener('wheel', preventScroll);
+  bodyEl.style.overflowY = 'auto';
+  bodyEl.style.touchAction = 'auto';
+}, 1500);
+
+// =====================================================
+
+// 深度相关元素
+const depthBox = document.getElementById('depthBox');
+const depthValue = document.getElementById('depth-value');
+const section2 = document.getElementById('page2');
+
+window.addEventListener('scroll', () => {
+  // 深度显示逻辑
+  const s2Top = section2.getBoundingClientRect().top;
+  if (s2Top < window.innerHeight * 0.8) {
+    depthBox.style.display = 'block';
+  } else {
+    depthBox.style.display = 'none';
+    depthValue.textContent = '0';
+  }
+
+  // 分层计算深度
+  const scrollTop = window.scrollY;
+  const section2Top = section2.offsetTop;
+  const relativeScroll = Math.max(0, scrollTop - section2Top);
+  const viewportHeight = window.innerHeight;
+  const layerIndex = Math.floor(relativeScroll / viewportHeight);
+  const layerProgress = (relativeScroll % viewportHeight) / viewportHeight;
+
+  let currentDepth = 0;
+  if (layerIndex === 0) {
+    currentDepth = Math.floor(layerProgress * 200);
+  } else if (layerIndex === 1) {
+    currentDepth = 200 + Math.floor(layerProgress * 800);
+  } else if (layerIndex === 2) {
+    currentDepth = 1000 + Math.floor(layerProgress * 3000);
+  } else if (layerIndex >= 3) {
+    currentDepth = 4000 + Math.floor(layerProgress * 7000);
+  }
+
+  depthValue.textContent = currentDepth.toLocaleString();
+
+  // 漂浮元素视差
+  const floatingElements = document.querySelectorAll('.floating-element');
+  floatingElements.forEach(el => {
+    const speed = el.getAttribute('data-speed');
+    const yPos = -(scrollTop * speed);
+    if(el.classList.contains('anglerfish') && el.style.transform.includes('scaleX(-1)')) {
+      el.style.transform = `translateY(${yPos}px) scaleX(-1)`;
+    } else {
+      el.style.transform = `translateY(${yPos}px)`;
+    }
+  });
+
+  // 区块文字渐入渐出
+  const layers = document.querySelectorAll('.sea-layer');
+  layers.forEach(layer => {
+    const layerTop = layer.getBoundingClientRect().top;
+    if (layerTop < window.innerHeight * 0.7) {
+      layer.classList.add('visible');
+    } else {
+      layer.classList.remove('visible');
+    }
+  });
+});
+
+// ========== 悬浮卡片交互逻辑（鼠标滑过显示，离开消失） ==========
+const hoverCard = document.getElementById('hoverCard');
+const tipTitle = document.getElementById('tipTitle');
+const tipText = document.getElementById('tipText');
+// 所有海洋生物图片
+const allAnimalImgs = document.querySelectorAll('.floating-element img');
+
+allAnimalImgs.forEach(img => {
+  // 鼠标滑过图片，显示卡片
+  img.addEventListener('mouseenter', (e) => {
+    // 获取图片的自定义标题和内容
+    const title = img.getAttribute('data-title') || '海洋垃圾';
+    const content = img.getAttribute('data-content') || '我是被抛弃的废弃物，漂流侵占整片海洋。';
+    
+    // 更新卡片内容
+    tipTitle.textContent = title;
+    tipText.value = content;
+    
+    // 显示卡片，位置在鼠标附近
+    hoverCard.style.display = 'block';
+    hoverCard.style.left = (e.clientX + 18) + 'px';
+    hoverCard.style.top = (e.clientY + 18) + 'px';
+  });
+  
+  // 鼠标离开图片，隐藏卡片
+  img.addEventListener('mouseleave', () => {
+    hoverCard.style.display = 'none';
+  });
+  
+  // 鼠标在图片上移动时，卡片跟随鼠标
+  img.addEventListener('mousemove', (e) => {
+    if (hoverCard.style.display === 'block') {
+      hoverCard.style.left = (e.clientX + 18) + 'px';
+      hoverCard.style.top = (e.clientY + 18) + 'px';
+    }
+  });
+});
+</script>
+</body>
+</html>

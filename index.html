@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蔚蓝康检</title>
+    <style>
+        /* 消除默认边距，隐藏水平滚动条 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            overflow: hidden;
+            background-color: #000;
+            box-sizing: border-box;
+        }
+
+        /* 背景微弱的网格线，模拟医疗监视器 */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(18, 53, 85, 0.1) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(18, 53, 85, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 1;
+        }
+
+        /* 核心渐变背景：模拟从海面到深海的光线变化 */
+        .ocean-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(to bottom,
+                #7cd1e8 0%,    /* 海面 */
+                #2980b9 15%,   /* 浅海 */
+                #1f4068 40%,   /* 暮色带 */
+                #162447 70%,   /* 午夜带 */
+                #0b0c10 100%   /* 深渊带 */
+            );
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10%;
+            box-sizing: border-box;
+        }
+
+        /* 核心动态视觉：海浪心电图 */
+        .ecg-container {
+            width: 100%;
+            max-width: 800px;
+            height: 150px;
+            position: relative;
+            margin: 0 auto 40px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .wave-ecg {
+            width: 100%;
+            height: 100%;
+            stroke: #00ffcc;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 4s linear infinite, fluctuate 2s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 8px rgba(0,255,204,0.8));
+        }
+
+        /* 心电图紊乱/发烧状态 */
+        .wave-ecg.fever {
+            stroke: #ff3366;
+            filter: drop-shadow(0 0 8px rgba(255,51,102,0.8));
+        }
+
+        /* 叙事诊断箱 —— 容器居中，文字左对齐 */
+        .symptoms-box {
+            min-height: 180px;
+            margin: 0 auto 50px auto;
+            text-align: left;
+            background: rgba(10, 25, 41, 0.6);
+            border: 1px solid #1a3a5f;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0,255,204,0.05);
+            max-width: 800px;
+            width: 100%;
+            z-index: 2;
+        }
+
+        .patient-info {
+            font-size: 0.9rem;
+            color: #5f8ea7;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #1a3a5f;
+            padding-bottom: 10px;
+        }
+
+        .symptom-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #a4dce9;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            background-color: #00ffcc;
+            animation: blink 1s infinite;
+        }
+
+        /* 呼救与按钮 */
+        .action-zone {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .action-zone.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .warning-text {
+            color: #ff3366;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .cta-btn {
+            background: transparent;
+            color: #00ffcc;
+            border: 2px solid #00ffcc;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0,255,204,0.2);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-btn:hover {
+            background: #00ffcc;
+            color: #050b11;
+            box-shadow: 0 0 25px rgba(0,255,204,0.6);
+            text-shadow: none;
+        }
+
+        /* --- 动画效果定义 --- */
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes fluctuate {
+            0% { transform: scaleY(0.8); }
+            100% { transform: scaleY(1.2); }
+        }
+        @keyframes blink {
+            50% { background-color: transparent; }
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; text-shadow: 0 0 10px rgba(255,51,102,0.5); }
+            100% { opacity: 0.6; }
+        }
+
+        /* --- 顶部漂浮图片 --- */
+        .float-top {
+            position: absolute;
+            top: 30px;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0.85;
+            filter: drop-shadow(0 0 12px rgba(124, 209, 232, 0.55));
+        }
+        .float-top.f1 { left: 8%; width: 110px; animation: drift1 5s ease-in-out infinite; }
+        .float-top.f2 { left: 25%; top: 15px; width: 90px; animation: drift2 6s ease-in-out infinite; }
+        .float-top.f3 { right: 28%; width: 130px; animation: drift1 7s ease-in-out infinite; }
+        .float-top.f4 { right: 8%; width: 100px; animation: drift2 5.5s ease-in-out infinite; }
+        .float-top.f5 { left: 46%; top: 10px; width: 95px; animation: drift1 6.5s ease-in-out infinite; }
+        @keyframes drift1 {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50%      { transform: translateY(-18px) rotate(3deg); }
+        }
+        @keyframes drift2 {
+            0%, 100% { transform: translateY(0) rotate(4deg); }
+            50%      { transform: translateY(-25px) rotate(-4deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="ocean-container">
+        <!-- 顶部漂浮图片组 -->
+        <img src="images/image_光线水母.png" alt="" class="float-top f1">
+        <img src="images/ima_海龟.png" alt="" class="float-top f2">
+        <img src="images/潜水面罩.png" alt="" class="float-top f3">
+        <img src="images/海豹吃垃圾.png" alt="" class="float-top f4">
+        <img src="images/imag_塑料鱼.png" alt="" class="float-top f5">
+
+        <!-- 核心动态视觉：海浪心电图 -->
+        <div class="ecg-container">
+            <svg class="wave-ecg" id="ecgWave" viewBox="0 0 800 150">
+                <!-- 模拟从平缓海浪过渡到剧烈心电图的波形 -->
+                <path d="M 0,75 C 50,75 70,75 100,75 C 130,75 140,40 150,110 C 160,75 180,75 220,75 C 260,50 280,100 300,30 C 320,130 330,75 360,75 C 400,75 420,20 440,140 C 450,90 470,75 500,75 C 550,20 580,130 610,10 C 630,120 650,75 700,75 L 800,75" />
+            </svg>
+        </div>
+
+        <!-- 叙事诊断箱 -->
+        <div class="symptoms-box">
+            <div class="patient-info">
+                <strong>患者姓名：</strong> 太平洋、大西洋、印度洋...（全球海洋整体） <br>
+                <strong>门诊号：</strong> EARTH-00046亿年
+            </div>
+            <div class="symptom-text">
+                <span id="typewriter"></span><span class="cursor">&nbsp;</span>
+            </div>
+        </div>
+
+        <!-- 交互开启 -->
+        <div class="action-zone" id="actionZone">
+            <div class="warning-text">⚠️ 警告：检测到该系统正在发生不可逆衰竭</div>
+            <!-- 下方链接可替换为 Page 2 的文件名，例如 report.html -->
+            <a href="he01.html" class="cta-btn">生成全球海洋体检报告</a>
+        </div>
+    </div>
+
+    <script>
+        // 拟人化的叙事文本
+        const textLines = [
+            "最近，我感觉身体越来越烫了……（高烧不退）",
+            "呼吸开始变得困难，胃里塞满了吐不出来的塑料和垃圾……（严重栓塞）",
+            "体内的血液正在变酸，珊瑚骨骼在成片地白化、碎裂……（骨质疏松）",
+            "我孕育了万物，但现在，我快撑不住了……"
+        ];
+
+        let lineIndex = 0;
+        let charIndex = 0;
+        const speed = 80; // 打字速度(ms)
+        const newlineDelay = 1200; // 每句话结束后的停顿时间
+        const typewriterEl = document.getElementById('typewriter');
+        const ecgWave = document.getElementById('ecgWave');
+        const actionZone = document.getElementById('actionZone');
+
+        function typeWriter() {
+            if (lineIndex < textLines.length) {
+                let currentLine = textLines[lineIndex];
+
+                // 动态改变心电图颜色：当说到痛苦处时，心电图变红
+                if (lineIndex >= 2) {
+                    ecgWave.classList.add('fever');
+                }
+
+                if (charIndex < currentLine.length) {
+                    typewriterEl.innerHTML += currentLine.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeWriter, speed);
+                } else {
+                    // 一行字打完，换行
+                    typewriterEl.innerHTML += "<br/>";
+                    charIndex = 0;
+                    lineIndex++;
+                    setTimeout(typeWriter, newlineDelay);
+                }
+            } else {
+                // 所有文字播放完毕，显示呼救按钮
+                showActionZone();
+            }
+        }
+
+        function showActionZone() {
+            actionZone.classList.add('show');
+        }
+
+        // 页面加载 1 秒后开始播放打字机动画
+        window.onload = () => {
+            setTimeout(typeWriter, 1000);
+        };
+    </script>
+</body>
+</html>

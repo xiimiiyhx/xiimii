@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓝色体检大屏｜中间效果图四边数据图</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<style>
+/* 全局基础 完全沿用你深海页面配色体系 */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ffffff;
+    overflow: hidden;
+    cursor: none !important;
+    /* 给body添加基础渐变，让导航栏背景融入整体 */
+    background: linear-gradient(to bottom, 
+        #7cd1e8 0%,    /* 海面浅蓝 */
+        #2980b9 15%,   /* 浅海 */
+        #1f4068 40%,   /* 暮色带 */
+        #162447 70%,   /* 午夜深蓝 */
+        #0b0c10 100%   /* 深渊黑蓝 */
+    );
+}
+body, body * {
+    cursor: none !important;
+}
+
+/* ==================== 导航栏样式 ==================== */
+.nav-container {
+    position: relative;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 15px 0 10px;
+    /* 导航栏渐变背景 - 深海渐变，融入页面整体 */
+    background: linear-gradient(180deg, 
+        rgba(124, 209, 232, 0.25) 0%, 
+        rgba(41, 128, 185, 0.35) 40%,
+        rgba(31, 64, 104, 0.45) 100%);
+    /* 导航栏底部边框，增强层次感 */
+    border-bottom: 1px solid rgba(124, 209, 232, 0.25);
+    /* 导航栏阴影，提升立体感 */
+    box-shadow: 0 4px 20px rgba(0, 20, 40, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+.nav-item {
+    background: rgba(22, 36, 71, 0.5);
+    border: 1px solid rgba(124, 209, 232, 0.25);
+    border-radius: 25px;
+    padding: 10px 30px;
+    color: #a8d8f0;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: inline-block;
+    backdrop-filter: blur(4px);
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(124, 209, 232, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.nav-item:hover::before {
+    left: 100%;
+}
+
+.nav-item:hover {
+    background: rgba(41, 128, 185, 0.35);
+    border-color: rgba(124, 209, 232, 0.5);
+    color: #e6f7ff;
+    text-shadow: 0 0 10px rgba(124, 209, 232, 0.6);
+    box-shadow: 0 0 15px rgba(124, 209, 232, 0.2), inset 0 0 8px rgba(124, 209, 232, 0.1);
+    transform: translateY(-2px);
+}
+
+/* 海洋危机亮起状态 */
+.nav-item.active {
+    background: linear-gradient(135deg, rgba(41, 128, 185, 0.5), rgba(124, 209, 232, 0.35));
+    border-color: rgba(124, 209, 232, 0.6);
+    color: #fff;
+    text-shadow: 0 0 12px rgba(124, 209, 232, 0.8), 0 0 25px rgba(124, 209, 232, 0.4);
+    box-shadow: 0 0 20px rgba(124, 209, 232, 0.35), inset 0 0 12px rgba(124, 209, 232, 0.15);
+    animation: nav-glow 2s ease-in-out infinite;
+}
+
+@keyframes nav-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(124, 209, 232, 0.35), inset 0 0 12px rgba(124, 209, 232, 0.15); }
+    50% { box-shadow: 0 0 30px rgba(124, 209, 232, 0.5), inset 0 0 18px rgba(124, 209, 232, 0.25); }
+}
+/* 大屏容器 - 移除原有背景渐变，改为透明，使用body的渐变作为基础 */
+.wrap-screen {
+    width: 100vw;
+    height: calc(100vh - 80px); /* 减去导航栏高度 */
+    padding: 20px;
+    box-sizing: border-box;
+    display: grid;
+    gap: 16px;
+    /* 网格布局：顶通栏 / 左中右两行 / 底通栏 */
+    grid-template-columns: 23% 50% 25%;
+    grid-template-rows: 55px 1fr 1fr 200px;
+    grid-template-areas:
+        "header header header"
+        "lt main rt"
+        "lb main rb"
+        "footer footer footer";
+    /* 容器半透明背景，增强层次感 */
+    background: rgba(11, 12, 16, 0.2);
+}
+/* 统一图表面板样式 匹配海洋半透蓝 */
+.chart-box {
+    background: rgba(26, 115, 232, 0.12);
+    border: 1px solid rgba(124, 209, 232, 0.35);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 0 18px rgba(124, 209, 232, 0.15);
+    backdrop-filter: blur(4px);
+}
+/* 面板标题 */
+.box-title {
+    font-size: 16px;
+    color: #7cd1e8;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.box-title::before {
+    content: "";
+    width: 5px;
+    height: 18px;
+    background: #7cd1e8;
+    margin-right: 10px;
+    border-radius: 2px;
+}
+.chart-content {
+    width: 100%;
+    height: calc(100% - 32px);
+}
+/* 网格区域绑定 */
+.header { grid-area: header; display: flex; gap: 16px; }
+.left-top { grid-area: lt; }
+.left-bottom { grid-area: lb; }
+.center-main { grid-area: main; }
+.right-top { grid-area: rt; }
+.right-bottom { grid-area: rb; }
+.footer { grid-area: footer; }
+
+/* 中间主效果图区域 */
+.main-view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.main-img-block {
+    width: 92%;
+    height: 88%;
+    border-radius: 8px;
+    border: 2px solid #7cd1e8;
+    box-shadow: 0 0 35px rgba(124, 209, 232, 0.25);
+    background: url("images/image_光线水母.png") center/contain no-repeat;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+}
+.main-img-block:hover {
+    box-shadow: 0 0 55px rgba(124, 209, 232, 0.55);
+}
+.main-desc {
+    margin-top: 14px;
+    font-size: 18px;
+    color: #e6f7ff;
+    text-shadow: 0 0 10px #7cd1e8;
+}
+
+/* 漂浮气泡层 复用你页面气泡样式 */
+#bubbleLayer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: inset 0 2px 6px rgba(255,255,255,0.45);
+    animation: bubbleUp 3s ease-out forwards;
+}
+@keyframes bubbleUp {
+    0% { opacity: 0.8; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-150px); }
+}
+
+/* 小鱼鼠标 */
+#fish {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  background-image: url('images/fish.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* 鼠标跟随气泡容器 */
+#bubbleContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+/* 鼠标移动产生的上浮气泡 */
+#bubbleContainer .bubble {
+  position: absolute;
+  background: rgba(173, 216, 230, 0.3);
+  border-radius: 50%;
+  animation: rise 2.5s ease-out forwards;
+}
+@keyframes rise {
+  0% { opacity: 0.8; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-120px); }
+}
+</style>
+</head>
+
+<body>
+<!-- 自定义小鱼鼠标 -->
+<div id="fish"></div>
+<!-- 鼠标跟随气泡层 -->
+<div id="bubbleContainer"></div>
+<!-- 全局漂浮气泡层 复用你交互气泡 -->
+<div id="bubbleLayer"></div>
+
+<!-- 导航栏 -->
+<div class="nav-container">
+    <a href="he01.html" class="nav-item">首页</a>
+    <a href="page2.html" class="nav-item">海洋信息</a>
+    <a href="page3_2.html" class="nav-item active">海洋危机</a>
+    <a href="page4.html" class="nav-item">海洋保护</a>
+    <a href="page3_1.html" class="nav-item" style="background: rgba(124, 209, 232, 0.2); border-color: rgba(124, 209, 232, 0.5);">→ 动态交互</a>
+</div>
+
+<div class="wrap-screen">
+
+    <!-- 左上：温度趋势折线图 -->
+    <div class="left-top chart-box">
+        <div class="box-title">近30年海水温度变化</div>
+        <div class="chart-content" id="lineDom"></div>
+    </div>
+
+    <!-- 左下：污染源环形饼图 -->
+    <div class="left-bottom chart-box">
+        <div class="box-title">海洋污染源占比</div>
+        <div class="chart-content" id="pieDom"></div>
+    </div>
+
+    <!-- 中间核心大图区域 -->
+    <div class="center-main chart-box">
+        <div class="main-view">
+            <div class="main-img-block" id="mainImg"></div>
+            <div class="main-desc" id="mainDesc">海洋生态全景体检效果图（点击图片切换）</div>
+        </div>
+    </div>
+
+    <!-- 右上：各国塑料排放气泡图 -->
+    <div class="right-top chart-box">
+        <div class="box-title">各国塑料排放气泡分布</div>
+        <div class="chart-content" id="bubbleDom"></div>
+    </div>
+
+    <!-- 右下：海洋综合健康评估雷达图 -->
+    <div class="right-bottom chart-box">
+        <div class="box-title">海洋综合健康评估雷达图</div>
+        <div class="chart-content" id="radarDom"></div>
+    </div>
+
+    <!-- 底部通栏：海平面逐年上升折线图 -->
+    <div class="footer chart-box">
+        <div class="box-title">海平面逐年上升高度</div>
+        <div class="chart-content" id="barDom"></div>
+    </div>
+</div>
+
+<script>
+// 1. 小鱼跟随鼠标
+const fish = document.getElementById('fish');
+document.addEventListener('mousemove', (e) => {
+  fish.style.left = e.clientX - 10 + 'px';
+  fish.style.top = e.clientY - 10 + 'px';
+});
+
+// 2. 鼠标移动生成上浮气泡
+const bubbleContainer = document.getElementById('bubbleContainer');
+document.addEventListener('mousemove', (e) => {
+  const size = Math.random() * 10 + 6;
+  const bubble = document.createElement('div');
+  bubble.classList.add('bubble');
+  bubble.style.width = size + 'px';
+  bubble.style.height = size + 'px';
+  bubble.style.left = e.clientX - size/2 + 'px';
+  bubble.style.top = e.clientY - size/2 + 'px';
+  bubbleContainer.appendChild(bubble);
+  setTimeout(() => bubble.remove(), 2500);
+});
+
+// 3. 全局漂浮气泡层 复用你页面气泡逻辑
+const bubbleLayer = document.getElementById('bubbleLayer');
+document.addEventListener('mousemove', e => {
+    const size = Math.random() * 12 + 5;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.style.width = size + 'px';
+    bubble.style.height = size + 'px';
+    bubble.style.left = e.clientX - size/2 + 'px';
+    bubble.style.top = e.clientY - size/2 + 'px';
+    bubbleLayer.appendChild(bubble);
+    setTimeout(() => bubble.remove(), 3000);
+})
+
+window.onload = function() {
+    // 中间视觉图：点击切换图片
+    const oceanImages = [
+        //{ url: "images/image_光线水母.png", label: "光线水母（点击图片切换）" },
+        { url: "images/ima_海龟.png", label: "被渔网缠住的海龟（点击图片切换）" },
+        { url: "images/海豹吃垃圾.png", label: "海豹吃垃圾（点击图片切换）" }
+    ];
+    let oceanIdx = 0;
+    const mainImg = document.getElementById("mainImg");
+    const mainDesc = document.getElementById("mainDesc");
+    if (mainImg) {
+        mainImg.addEventListener("click", () => {
+            oceanIdx = (oceanIdx + 1) % oceanImages.length;
+            mainImg.style.backgroundImage = `url("${oceanImages[oceanIdx].url}")`; 
+            if (mainDesc) mainDesc.textContent = oceanImages[oceanIdx].label;
+        });
+    }
+
+    // 统一图表配色：贴合深海 #7cd1e8 / #2980b9 两套主色
+    const colorMain = "#7cd1e8";
+    const colorSec = "#2980b9";
+    const colorLight = "#b8e4f2";
+    const gridLine = "rgba(124, 209, 232, 0.18)";
+    const axisText = "#e6f7ff";
+
+    // 1 折线图
+    const lineChart = echarts.init(document.getElementById("lineDom"));
+    lineChart.setOption({
+        tooltip: { trigger: "axis", textStyle: { color: "#000" } },
+        grid: { left: 55, right: 20, top: 35, bottom: 45 },
+        xAxis: {
+            name: "年份",
+            nameLocation: "end",
+            nameGap: 25,
+            type: "category",
+            data: ["1995","2000","2005","2010","2015","2020","2025"],
+            axisLine: { lineStyle: { color: colorMain } },
+            axisLabel: { color: axisText }
+        },
+        yAxis: {
+            name: "温度(°C)",
+            nameLocation: "end",
+            nameGap: 15,
+            type: "value",
+            axisLine: { lineStyle: { color: colorMain } },
+            splitLine: { lineStyle: { color: gridLine } },
+            axisLabel: { color: axisText }
+        },
+        series: [{
+            name: "海水温度",
+            type: "line",
+            data: [16.2,16.5,16.9,17.1,17.4,17.6,17.8],
+            lineStyle: { color: colorMain, width: 2 },
+            areaStyle: { color: "rgba(124, 209, 232, 0.15)" }
+        }]
+    })
+
+    // 2 环形饼图
+    const pieChart = echarts.init(document.getElementById("pieDom"));
+    pieChart.setOption({
+        tooltip: { trigger: "item", textStyle: { color: "#000" } },
+        series: [{
+            type: "pie",
+            radius: ["38%", "68%"],
+            center: ["50%", "50%"],
+            data: [
+                {name:"生活塑料",value:40},
+                {name:"工业废料",value:28},
+                {name:"渔业渔具",value:18},
+                {name:"航运垃圾",value:14}
+            ],
+            itemStyle: {
+                color: function(params) {
+                    return [colorMain, colorSec, "#36b9cc", "#ffd170"][params.dataIndex]
+                }
+            },
+            label: { color: axisText }
+        }]
+    })
+
+    // 3 气泡散点图
+    const bubbleChart = echarts.init(document.getElementById("bubbleDom"));
+    bubbleChart.setOption({
+        tooltip: { textStyle: { color: "#000" } },
+        grid: { left: 60, right: 20, top: 45, bottom: 35 },
+        xAxis: {
+            name: "人口(亿)",
+            type: "value",
+            axisLine: { lineStyle: { color: colorMain } },
+            axisLabel: { color: axisText },
+            splitLine: { lineStyle: { color: gridLine } }
+        },
+        yAxis: {
+            name: "年排放量(万吨)",
+            type: "value",
+            max: 450,
+            axisLine: { lineStyle: { color: colorMain } },
+            axisLabel: { color: axisText },
+            splitLine: { lineStyle: { color: gridLine } }
+        },
+        series: [{
+            type: "scatter",
+            symbolSize: d => d[2]/2,
+            data: [[14.1,320,320],[13.8,280,280],[3.3,95,95],[2.1,62,62],[0.6,43,43]],
+            itemStyle: { color: colorMain }
+        }]
+    })
+
+    // 4 底部折线图：海平面逐年上升
+    const barChart = echarts.init(document.getElementById("barDom"));
+    barChart.setOption({
+        tooltip: { trigger: "axis", textStyle: { color: "#000" } },
+        grid: { left: 55, right: 25, top: 30, bottom: 10 },
+        xAxis: {
+            name: "年份",
+            type: "category",
+            data: ["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025预估"],
+            axisLine: { lineStyle: { color: colorMain } },
+            axisLabel: { color: axisText, interval: 0, rotate: 30 }
+        },
+        yAxis: {
+            name: "上升高度(mm)",
+            axisLine: { lineStyle: { color: colorMain } },
+            splitLine: { lineStyle: { color: gridLine } },
+            axisLabel: { color: axisText }
+        },
+        series: [{
+            type: "line",
+            data: [3.0,3.2,3.3,3.5,3.4,3.7,4.0,3.8,4.2,4.5,4.3,4.6,4.8,5.0,5.2,5.5],
+            smooth: true,
+            lineStyle: { color: colorMain, width: 3 },
+            itemStyle: { color: colorMain },
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: "rgba(124, 209, 232, 0.45)" },
+                    { offset: 1, color: "rgba(41, 128, 185, 0.08)" }
+                ])
+            }
+        }]
+    })
+
+    // 5 底部雷达图
+    const radarChart = echarts.init(document.getElementById("radarDom"));
+    radarChart.setOption({
+        tooltip: { textStyle: { color: "#000" } },
+        radar: {
+            indicator: [
+                {name:"水温稳定",max:100},
+                {name:"酸碱平衡",max:100},
+                {name:"塑料污染",max:100},
+                {name:"生物多样性",max:100},
+                {name:"海平面稳定",max:100},
+                {name:"渔业环境",max:100}
+            ],
+            splitLine: { lineStyle: { color: gridLine } },
+            axisName: { color: axisText }
+        },
+        series: [{
+            type: "radar",
+            data: [{ value: [42,48,76,35,40,45], name: "2025现状" }],
+            areaStyle: { color: "rgba(124, 209, 232, 0.18)" },
+            lineStyle: { color: colorMain },
+            itemStyle: { color: colorMain }
+        }]
+    })
+
+    // 窗口自适应重绘
+    window.addEventListener("resize", () => {
+        lineChart.resize();
+        pieChart.resize();
+        bubbleChart.resize();
+        barChart.resize();
+        radarChart.resize();
+    })
+}
+</script>
+</body>
+</html>
